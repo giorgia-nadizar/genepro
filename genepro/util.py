@@ -99,6 +99,32 @@ def __tree_from_symb_list_recursive(symb_list: list, possible_nodes: list):
 
 
 def one_hot_encode_tree(tree: Node, operators: list, n_features: int, max_depth: int, max_arity: int) -> list:
+    """
+    Provides a one-hot encoded representation of a tree, traversing it from the root in a breadth-first manner,
+    and considering it as a full tree.
+
+    Parameters
+    ----------
+    tree : Node
+      tree to be one-hot encoded
+
+    operators : list
+      list of all possible symbols allowed for operators
+
+    n_features : int
+      amount of allowed features in the tree
+
+    max_depth : int
+      maximal depth of the tree
+
+    max_arity : int
+      maximal arity of the tree
+
+    Returns
+    -------
+      list
+        the one-hot encoded tree
+    """
     dictionary_encoded_tree = tree.get_dict_repr(max_arity)
     size = len(operators) + n_features + 1
     one_hot = []
