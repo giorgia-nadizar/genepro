@@ -1,4 +1,5 @@
 import inspect
+import re
 from copy import deepcopy
 import numpy as np
 
@@ -95,3 +96,28 @@ def __tree_from_symb_list_recursive(symb_list: list, possible_nodes: list):
     # if reached this line, it must be a constant
     n = Constant(float(symb))
     return n, symb_list
+
+
+def one_hot_encode_tree(tree: Node, operators: list, n_features: int, max_depth: int, max_arity: int) -> list:
+    dictionary_encoded_tree = tree.get_dict_repr(max_arity)
+    size = len(operators) + n_features + 1
+    one_hot = []
+    for node_index in range(max_depth * max_arity):
+        current_encoding = [0] * size
+        if node_index in dictionary_encoded_tree:
+            node_content = dictionary_encoded_tree[node_index]
+            if node_content in operators:
+                current_encoding[operators.index(node_content)] = 1
+            elif node_content.startswith("x_"):
+                feature_index = int(node_content[2:])
+                if feature_index < n_features:
+                    current_encoding[len(operators) + feature_index + 1] = 1
+                else:
+                    raise Exception("More features than declared.")
+            elif float(node_content):
+                current_encoding[size - 1] = 1
+            else:
+                raise Exception("Unexpected node content.")
+
+        one_hot = one_hot + current_encoding
+    return one_hot
