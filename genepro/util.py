@@ -127,7 +127,8 @@ def one_hot_encode_tree(tree: Node, operators: list, n_features: int, max_depth:
     dictionary_encoded_tree = tree.get_dict_repr(max_arity)
     size = len(operators) + n_features + 1
     one_hot = []
-    for node_index in range(max_arity ** (max_depth + 1)):
+    n_nodes = (max_arity ** (max_depth + 1) - 1)/(max_arity - 1)
+    for node_index in range(n_nodes):
         current_encoding = [0] * size
         if node_index in dictionary_encoded_tree:
             node_content = dictionary_encoded_tree[node_index]
@@ -136,7 +137,7 @@ def one_hot_encode_tree(tree: Node, operators: list, n_features: int, max_depth:
             elif node_content.startswith("x_"):
                 feature_index = int(node_content[2:])
                 if feature_index < n_features:
-                    current_encoding[len(operators) + feature_index + 1] = 1
+                    current_encoding[len(operators) + feature_index] = 1
                 else:
                     raise Exception("More features than declared.")
             elif float(node_content):
