@@ -181,6 +181,20 @@ class Node:
                 max_h = d
         return max_h - curr_depth
 
+    def get_n_nodes(self) -> int:
+        """
+        Computes and returns the number of nodes in the tree
+
+        Returns
+        -------
+        int
+          the amount of nodes in this tree
+        """
+        size = 1
+        for child in self._children:
+            size = size + child.get_n_nodes()
+        return size
+
     def _get_child_outputs(self, X: np.ndarray) -> list:
         """
         Returns the output of the children for the given input as a list
