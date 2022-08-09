@@ -127,7 +127,7 @@ def one_hot_encode_tree(tree: Node, operators: list, n_features: int, max_depth:
     dictionary_encoded_tree = tree.get_dict_repr(max_arity)
     size = len(operators) + n_features + 1
     one_hot = []
-    n_nodes = (max_arity ** (max_depth + 1) - 1)/(max_arity - 1)
+    n_nodes = int( (max_arity ** (max_depth + 1) - 1)/(max_arity - 1) )
     for node_index in range(n_nodes):
         current_encoding = [0] * size
         if node_index in dictionary_encoded_tree:
