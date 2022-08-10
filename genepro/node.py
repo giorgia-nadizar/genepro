@@ -295,6 +295,24 @@ class Node:
             args.append(repr[0])
         repr[0] = self._get_args_repr(args)
 
+    def get_child(self, idx: int) -> Node:
+        """
+        Returns the child placed at the given index.
+
+        Parameters
+        ----------
+        idx : int
+          the index of the child
+
+        Returns
+        -------
+        Node
+          the node representing the child at the given index
+        """
+        if not (0 <= idx < self.arity):
+            raise IndexError(f"{idx} is out of range for current node arity.")
+        return self._children[idx]
+
     def get_dict_repr(self, max_arity: int, node_index=0) -> dict:
         """
         Returns a dictionary-encoded tree, where the keys are the indexes of the node (considering a breadth-first
@@ -316,3 +334,44 @@ class Node:
         for i in range(self.arity):
             representation = representation | self._children[i].get_dict_repr(max_arity, node_index * max_arity + 1 + i)
         return representation
+
+    def tree_numerical_properties(self) -> dict:
+        """
+        Returns a dict of integers, where each integer represents a numerical property of the given tree.
+        The keys are described as follows:
+        - height: contains a value that is equals to the output value of get_height()
+        - n_nodes: contains a value that is equals to the output value of get_n_nodes()
+        - max_arity: the arity of the node with the maximum number of children
+        - max_breadth: the number of nodes in the level with the maximum number of nodes
+        - n_leaf_nodes: the number of leaf nodes
+        - n_internal_nodes: the number of internal nodes
+
+        Returns
+        -------
+        dict
+          dict of integers, where each integer represents a numerical property of the given tree
+        """
+        queue = [self]
+        properties_dict = {k: 0.0 for k in ["height", "n_nodes", "max_arity", "max_breadth", "n_leaf_nodes", "n_internal_nodes"]}
+        levels = {}
+        while len(queue) > 0:
+            curr_node = queue.pop(0)
+            properties_dict["n_nodes"] += 1.0
+            curr_depth, curr_arity = curr_node.get_depth(), curr_node.arity
+            if curr_depth > properties_dict["height"]:
+                properties_dict["height"] = curr_depth
+            if curr_arity > properties_dict["max_arity"]:
+                properties_dict["max_arity"] = curr_arity
+            if curr_arity == 0:
+                properties_dict["n_leaf_nodes"] += 1.0
+            else:
+                properties_dict["n_internal_nodes"] += 1.0
+            if curr_depth not in levels:
+                levels[curr_depth] = 0.0
+            levels[curr_depth] += 1.0
+            for child_index in range(curr_arity):
+                queue.append(curr_node.get_child(child_index))
+        for l in levels:
+            if levels[l] > properties_dict["max_breadth"]:
+                properties_dict["max_breadth"] = levels[l]
+        return properties_dict
