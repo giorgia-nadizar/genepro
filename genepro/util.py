@@ -158,7 +158,7 @@ def counts_encode_tree(tree: Node, operators: list, n_features: int, max_depth: 
             elif re.search(r'^[+-]?\d+(\.\d+)?([Ee][+-]?\d+)?$', node_content) or isinstance(node_content, float) or isinstance(node_content, int):
                 counts[size - 1] += 1.0
             else:
-                raise Exception("Unexpected node content.")
+                raise Exception(f"Unexpected node content: {str(node_content)}.")
 
     if additional_properties:
         properties_dict = tree.tree_numerical_properties()
@@ -215,7 +215,7 @@ def one_hot_encode_tree(tree: Node, operators: list, n_features: int, max_depth:
             elif re.search(r'^[+-]?\d+(\.\d+)?([Ee][+-]?\d+)?$', node_content) or isinstance(node_content, float) or isinstance(node_content, int):
                 current_encoding[size - 1] = 1.0
             else:
-                raise Exception("Unexpected node content.")
+                raise Exception(f"Unexpected node content: {str(node_content)}.")
 
         one_hot = one_hot + current_encoding
     return one_hot
