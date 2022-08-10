@@ -164,7 +164,7 @@ def counts_encode_tree(tree: Node, operators: list, n_features: int, max_depth: 
         properties_dict = tree.tree_numerical_properties()
         height_n_nodes_ratio = (properties_dict["height"] + 1.0) / float(properties_dict["n_nodes"])
         max_arity_breadth_ratio = properties_dict["max_arity"] / float(properties_dict["max_breadth"])
-        leaf_internal_ratio = properties_dict["n_leaf_nodes"] / float(properties_dict["n_internal_nodes"])
+        leaf_internal_ratio = properties_dict["n_leaf_nodes"] / float(properties_dict["n_internal_nodes"]) if properties_dict["n_internal_nodes"] != 0 else 0.0
         counts = counts + [height_n_nodes_ratio, max_arity_breadth_ratio, leaf_internal_ratio]
     return counts
 
