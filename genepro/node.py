@@ -1,8 +1,6 @@
 from __future__ import annotations
 import numpy as np
 
-from genepro.util import tree_from_prefix_repr
-
 
 class Node:
     """
@@ -378,6 +376,3 @@ class Node:
             if levels[l] > properties_dict["max_breadth"]:
                 properties_dict["max_breadth"] = levels[l]
         return properties_dict
-
-    def __deepcopy__(self):
-        return tree_from_prefix_repr(str(self.get_subtree()))
