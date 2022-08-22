@@ -211,7 +211,7 @@ def safe_subtree_mutation(tree: Node, internal_nodes: list, leaf_nodes: list,
     Node
       the tree after mutation (warning: replace the original tree with the returned one to avoid undefined behavior)
     """
-    return subtree_mutation(tree.__deepcopy__(), internal_nodes, leaf_nodes, unif_depth, max_depth, prob_leaf)
+    return subtree_mutation(deepcopy(tree), internal_nodes, leaf_nodes, unif_depth, max_depth, prob_leaf)
 
 
 def coeff_mutation(tree: Node, prob_coeff_mut: float = 0.25, temp: float = 0.25) -> Node:
@@ -263,7 +263,7 @@ def safe_coeff_mutation(tree: Node, prob_coeff_mut: float = 0.25, temp: float = 
     Node
       the tree after coefficient mutation (it is the same as the tree in input)
     """
-    return coeff_mutation(tree.__deepcopy__(), prob_coeff_mut, temp)
+    return coeff_mutation(deepcopy(tree), prob_coeff_mut, temp)
 
 
 def __sample_node(tree: Node, unif_depth: bool = True) -> Node:
