@@ -1,6 +1,8 @@
 from __future__ import annotations
 import numpy as np
 
+from genepro.util import tree_from_prefix_repr
+
 
 class Node:
     """
@@ -352,7 +354,8 @@ class Node:
           dict of integers, where each integer represents a numerical property of the given tree
         """
         queue = [self]
-        properties_dict = {k: 0.0 for k in ["height", "n_nodes", "max_arity", "max_breadth", "n_leaf_nodes", "n_internal_nodes"]}
+        properties_dict = {k: 0.0 for k in
+                           ["height", "n_nodes", "max_arity", "max_breadth", "n_leaf_nodes", "n_internal_nodes"]}
         levels = {}
         while len(queue) > 0:
             curr_node = queue.pop(0)
@@ -375,3 +378,6 @@ class Node:
             if levels[l] > properties_dict["max_breadth"]:
                 properties_dict["max_breadth"] = levels[l]
         return properties_dict
+
+    def __deepcopy__(self):
+        return tree_from_prefix_repr(str(self.get_subtree()))
