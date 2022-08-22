@@ -79,6 +79,50 @@ def subtree_crossover(tree: Node, donor: Node, unif_depth: int = True) -> Node:
     return tree
 
 
+def safe_subtree_crossover_two_children(tree1: Node, tree2: Node, unif_depth: int = True) -> tuple[Node, Node]:
+    """
+    Performs subtree crossover and returns the resulting offsprings without changing the original trees
+
+    Parameters
+    ----------
+    tree1 : Node
+      the first tree participating in the crossover
+    tree2 : Node
+      the second tree participating in the crossover
+    unif_depth : bool, optional
+      whether uniform random depth sampling is used to pick the root of the subtrees to swap (default is True)
+
+    Returns
+    -------
+    Node
+      the trees after crossover
+    """
+    tree1 = deepcopy(tree1)
+    tree2 = deepcopy(tree2)
+
+    # pick a subtree to replace
+    child1 = __sample_node(tree1, unif_depth)
+    child2 = __sample_node(tree2, unif_depth)
+
+    # swap
+    parent1 = child1.parent
+    parent2 = child2.parent
+
+    if parent1:
+        i = parent1.detach_child(child1)
+        parent1.insert_child(child2, i)
+    else:
+        tree1 = child2
+
+    if parent2:
+        i = parent2.detach_child(child2)
+        parent2.insert_child(child1, i)
+    else:
+        tree2 = child1
+
+    return tree1, tree2
+
+
 def node_level_crossover(tree: Node, donor: Node, same_depth: bool = False, prob_swap: float = 0.1) -> Node:
     """
     Performs crossover at the level of single nodes
@@ -148,6 +192,94 @@ def node_level_crossover(tree: Node, donor: Node, same_depth: bool = False, prob
     return tree
 
 
+def safe_node_level_crossover_two_children(tree1: Node, tree2: Node, same_depth: bool = False,
+                                           prob_swap: float = 0.8) -> tuple[Node, Node]:
+    """
+    Performs crossover at the level of single nodes, without changing the original trees
+
+    Parameters
+    ----------
+    tree1 : Node
+      the first tree participating in the crossover
+    tree2 : Node
+    same_depth : bool, optional
+      whether node-level swaps should occur only between nodes at the same depth level (default is False)
+    prob_swap : float, optional
+      the probability of swapping a node in tree with one in donor (default is 0.1)
+
+    Returns
+    -------
+    Node
+      the tree after crossover
+    """
+    tree1 = deepcopy(tree1)
+    tree2 = deepcopy(tree2)
+
+    nodes1 = tree1.get_subtree()
+    nodes2 = tree2.get_subtree()
+
+    nodes2_arity = dict()
+    nodes2_arity_n_depth = dict()
+
+    for child2 in nodes2:
+        arity = child2.arity
+        if arity not in nodes2_arity:
+            nodes2_arity[arity] = [child2]
+        else:
+            nodes2_arity[arity].append(child2)
+        # also record depths if same_depth==True
+        if same_depth:
+            depth = child2.get_depth()
+            ar_n_dep = (arity, depth)
+            if ar_n_dep not in nodes2_arity_n_depth:
+                nodes2_arity_n_depth[ar_n_dep] = [child2]
+            else:
+                nodes2_arity_n_depth[ar_n_dep].append(child2)
+
+    for child1 in nodes1:
+        if randu() < prob_swap:
+            # find compatible donor
+            arity = child1.arity
+            if same_depth:
+                depth = child1.get_depth()
+                compatible_nodes = nodes2_arity_n_depth[(arity, depth)] if (arity,
+                                                                            depth) in nodes2_arity_n_depth else None
+            else:
+                compatible_nodes = nodes2_arity[arity] if arity in nodes2_arity else None
+            # if no compatible nodes, skip
+            if compatible_nodes is None or len(compatible_nodes) == 0:
+                continue
+
+            # swap
+            child2 = randc(compatible_nodes)
+
+            parent2 = child2.parent
+            children2 = child2._children
+            parent1 = child1.parent
+            children1 = child1._children
+
+            child1._children = list()
+            child2._children = list()
+
+            if parent1:
+                i = parent1.detach_child(child1)
+                parent1.insert_child(child2, i)
+            else:
+                tree1 = child2
+            for c in children1:
+                child2.insert_child(c)
+
+            if parent2:
+                i = parent2.detach_child(child2)
+                parent2.insert_child(child1, i)
+            else:
+                tree2 = child1
+            for c in children2:
+                child1.insert_child(c)
+
+    return tree1, tree2
+
+
 def subtree_mutation(tree: Node, internal_nodes: list, leaf_nodes: list,
                      unif_depth: bool = True, max_depth: int = 4, prob_leaf: float = 0.25) -> Node:
     """
@@ -175,6 +307,7 @@ def subtree_mutation(tree: Node, internal_nodes: list, leaf_nodes: list,
     # pick a subtree to replace
     n = __sample_node(tree, unif_depth)
     # generate a random branch
+    # TODO
     branch = generate_random_tree(internal_nodes, leaf_nodes, max_depth, prob_leaf)
     # swap
     p = n.parent
@@ -234,7 +367,7 @@ def coeff_mutation(tree: Node, prob_coeff_mut: float = 0.25, temp: float = 0.25)
     """
     coeffs = [n for n in tree.get_subtree() if type(n) == Constant]
     for c in coeffs:
-        # decide wheter it should be applied
+        # decide whether it should be applied
         if randu() < prob_coeff_mut:
             v = c.get_value()
             # update the value by +- temp relative to current value
