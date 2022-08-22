@@ -1,6 +1,7 @@
 import inspect
 from copy import deepcopy
 import numpy as np
+import re
 
 from genepro.node import Node
 from genepro import node_impl
@@ -95,3 +96,126 @@ def __tree_from_symb_list_recursive(symb_list: list, possible_nodes: list):
     # if reached this line, it must be a constant
     n = Constant(float(symb))
     return n, symb_list
+
+
+def counts_encode_tree(tree: Node, operators: list, n_features: int, max_depth: int, max_arity: int, additional_properties: bool = False) -> list:
+    """
+    Provides a counts encoded representation of a tree, traversing it from the root in a breadth-first manner,
+    and considering it as a full tree. It outputs a list of integers.
+    Each integer is the raw count of a given operator, feature or constant in the tree.
+    The output list is fixed-length, i.e., if a given operator/feature does not belong to the tree,
+    then its raw count is 0 in the output list.
+    Optionally, it is possible, through the "additional_properties" flag, to append to the raw counts
+    of operators/features/constants a list of numerical properties of the tree.
+    These numerical properties are listed below:
+        - (height + 1) / number of nodes
+        - max arity / max breadth
+        - number of leaf nodes / number of internal nodes
+
+    Parameters
+    ----------
+    tree : Node
+      tree to be counts encoded
+
+    operators : list
+      list of all possible symbols allowed for operators
+
+    n_features : int
+      amount of allowed features in the tree
+
+    max_depth : int
+      maximal depth of the tree
+
+    max_arity : int
+      maximal arity of the tree
+
+    additional_properties: bool
+      if this flag is True, then the output list will be extended with a list of numerical properties of the given tree.
+      These properties are computed using the dictionary returned
+      by the genepro.node.tree_numerical_properties method.
+      Default value is False.
+
+    Returns
+    -------
+      list
+        the counts encoded tree
+    """
+    dictionary_encoded_tree = tree.get_dict_repr(max_arity)
+    size = len(operators) + n_features + 1
+    counts = [0.0] * size
+    n_nodes = int( (max_arity ** (max_depth + 1) - 1)/(max_arity - 1) )
+    for node_index in range(n_nodes):
+        if node_index in dictionary_encoded_tree:
+            node_content = dictionary_encoded_tree[node_index]
+            if node_content in operators:
+                counts[operators.index(node_content)] += 1.0
+            elif node_content.startswith("x_"):
+                feature_index = int(node_content[2:])
+                if feature_index < n_features:
+                    counts[len(operators) + feature_index] += 1.0
+                else:
+                    raise Exception("More features than declared.")
+            elif re.search(r'^[+-]?\d+(\.\d+)?([Ee][+-]?\d+)?$', node_content) or isinstance(node_content, float) or isinstance(node_content, int):
+                counts[size - 1] += 1.0
+            else:
+                raise Exception(f"Unexpected node content: {str(node_content)}.")
+
+    if additional_properties:
+        properties_dict = tree.tree_numerical_properties()
+        height_n_nodes_ratio = (properties_dict["height"] + 1.0) / float(properties_dict["n_nodes"])
+        max_arity_breadth_ratio = properties_dict["max_arity"] / float(properties_dict["max_breadth"])
+        leaf_internal_ratio = properties_dict["n_leaf_nodes"] / float(properties_dict["n_internal_nodes"]) if properties_dict["n_internal_nodes"] != 0 else 0.0
+        counts = counts + [height_n_nodes_ratio, max_arity_breadth_ratio, leaf_internal_ratio]
+    return counts
+
+
+def one_hot_encode_tree(tree: Node, operators: list, n_features: int, max_depth: int, max_arity: int) -> list:
+    """
+    Provides a one-hot encoded representation of a tree, traversing it from the root in a breadth-first manner,
+    and considering it as a full tree.
+
+    Parameters
+    ----------
+    tree : Node
+      tree to be one-hot encoded
+
+    operators : list
+      list of all possible symbols allowed for operators
+
+    n_features : int
+      amount of allowed features in the tree
+
+    max_depth : int
+      maximal depth of the tree
+
+    max_arity : int
+      maximal arity of the tree
+
+    Returns
+    -------
+      list
+        the one-hot encoded tree
+    """
+    dictionary_encoded_tree = tree.get_dict_repr(max_arity)
+    size = len(operators) + n_features + 1
+    one_hot = []
+    n_nodes = int( (max_arity ** (max_depth + 1) - 1)/(max_arity - 1) )
+    for node_index in range(n_nodes):
+        current_encoding = [0.0] * size
+        if node_index in dictionary_encoded_tree:
+            node_content = dictionary_encoded_tree[node_index]
+            if node_content in operators:
+                current_encoding[operators.index(node_content)] = 1.0
+            elif node_content.startswith("x_"):
+                feature_index = int(node_content[2:])
+                if feature_index < n_features:
+                    current_encoding[len(operators) + feature_index] = 1.0
+                else:
+                    raise Exception("More features than declared.")
+            elif re.search(r'^[+-]?\d+(\.\d+)?([Ee][+-]?\d+)?$', node_content) or isinstance(node_content, float) or isinstance(node_content, int):
+                current_encoding[size - 1] = 1.0
+            else:
+                raise Exception(f"Unexpected node content: {str(node_content)}.")
+
+        one_hot = one_hot + current_encoding
+    return one_hot
