@@ -154,7 +154,7 @@ def counts_encode_tree(tree: Node, operators: list, n_features: int, max_depth: 
                 if feature_index < n_features:
                     counts[len(operators) + feature_index] += 1.0
                 else:
-                    raise Exception("More features than declared.")
+                    raise Exception(f"More features than declared. Declared: {n_features}. Feature index found: {feature_index}.")
             elif re.search(r'^[+-]?\d+(\.\d+)?([Ee][+-]?\d+)?$', node_content) or isinstance(node_content, float) or isinstance(node_content, int):
                 counts[size - 1] += 1.0
             else:
@@ -166,6 +166,83 @@ def counts_encode_tree(tree: Node, operators: list, n_features: int, max_depth: 
         max_arity_breadth_ratio = properties_dict["max_arity"] / float(properties_dict["max_breadth"])
         leaf_internal_ratio = properties_dict["n_leaf_nodes"] / float(properties_dict["n_internal_nodes"]) if properties_dict["n_internal_nodes"] != 0 else 0.0
         counts = counts + [height_n_nodes_ratio, max_arity_breadth_ratio, leaf_internal_ratio]
+    return counts
+
+
+def counts_level_wise_encode_tree(tree: Node, operators: list, n_features: int, max_depth: int, max_arity: int, additional_properties: bool = False) -> list:
+    """
+    Provides a level-wise counts encoded representation of a tree, traversing it from the root in a breadth-first manner,
+    and considering it as a full tree. It outputs a list of integers.
+    Each integer is the raw count of a given operator, feature or constant in a given layer of the tree.
+    The output list is fixed-length, i.e., if a given operator/feature does not belong to a given layer of the tree,
+    then its raw count is 0 in the output list.
+    Optionally, it is possible, through the "additional_properties" flag, to append to the raw counts
+    of operators/features/constants a list of numerical properties of the tree.
+    These numerical properties are listed below:
+        - (height + 1) / number of nodes
+        - max arity / max breadth
+        - number of leaf nodes / number of nodes
+    Each raw count is scaled between 0 and 1.
+
+    Parameters
+    ----------
+    tree : Node
+      tree to be counts encoded
+
+    operators : list
+      list of all possible symbols allowed for operators
+
+    n_features : int
+      amount of allowed features in the tree
+
+    max_depth : int
+      maximal depth of the tree
+
+    max_arity : int
+      maximal arity of the tree
+
+    additional_properties: bool
+      if this flag is True, then the output list will be extended with a list of numerical properties of the given tree.
+      These properties are computed using the dictionary returned
+      by the genepro.node.tree_numerical_properties method.
+      Default value is False.
+
+    Returns
+    -------
+      list
+        the counts encoded tree
+    """
+    dictionary_encoded_tree = tree.get_dict_repr(max_arity)
+    size = len(operators) + n_features + 1
+    counts = []
+    node_index = 0
+    for curr_depth in range(max_depth+1):
+        curr_n_nodes = max_arity ** curr_depth
+        curr_counts = [0.0] * size
+        for _ in range(curr_n_nodes):
+            if node_index in dictionary_encoded_tree:
+                node_content = dictionary_encoded_tree[node_index]
+                if node_content in operators:
+                    curr_counts[operators.index(node_content)] += 1.0/float(curr_n_nodes)
+                elif node_content.startswith("x_"):
+                    feature_index = int(node_content[2:])
+                    if feature_index < n_features:
+                        curr_counts[len(operators) + feature_index] += 1.0/float(curr_n_nodes)
+                    else:
+                        raise Exception(f"More features than declared. Declared: {n_features}. Feature index found: {feature_index}.")
+                elif re.search(r'^[+-]?\d+(\.\d+)?([Ee][+-]?\d+)?$', node_content) or isinstance(node_content, float) or isinstance(node_content, int):
+                    curr_counts[size - 1] += 1.0/float(curr_n_nodes)
+                else:
+                    raise Exception(f"Unexpected node content: {str(node_content)}.")
+            node_index += 1
+        counts.extend(curr_counts)
+
+    if additional_properties:
+        properties_dict = tree.tree_numerical_properties()
+        height_n_nodes_ratio = (properties_dict["height"] + 1.0) / float(properties_dict["n_nodes"])
+        max_arity_breadth_ratio = properties_dict["max_arity"] / float(properties_dict["max_breadth"])
+        leaf_nodes_ratio = properties_dict["n_leaf_nodes"] / float(properties_dict["n_nodes"])
+        counts = counts + [height_n_nodes_ratio, max_arity_breadth_ratio, leaf_nodes_ratio]
     return counts
 
 
@@ -211,7 +288,7 @@ def one_hot_encode_tree(tree: Node, operators: list, n_features: int, max_depth:
                 if feature_index < n_features:
                     current_encoding[len(operators) + feature_index] = 1.0
                 else:
-                    raise Exception("More features than declared.")
+                    raise Exception(f"More features than declared. Declared: {n_features}. Feature index found: {feature_index}.")
             elif re.search(r'^[+-]?\d+(\.\d+)?([Ee][+-]?\d+)?$', node_content) or isinstance(node_content, float) or isinstance(node_content, int):
                 current_encoding[size - 1] = 1.0
             else:
