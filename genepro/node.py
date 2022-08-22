@@ -1,8 +1,6 @@
 from __future__ import annotations
 import numpy as np
 
-from genepro.util import tree_from_prefix_repr
-
 
 class Node:
     """
@@ -67,6 +65,45 @@ class Node:
           the output obtained by processing the input
         """
         return self.get_output(X)
+
+    def __eq__(self, other: Node) -> bool:
+        """
+        Check if two trees are exactly the same.
+
+        Parameters
+        ----------
+        other : Node
+          another tree
+
+        Returns
+        -------
+        bool
+          whether the two trees are equal
+        """
+        if self.arity != other.arity or self.symb != other.symb:
+            return False
+        if self.arity == 0:
+            return True
+        return all([self.get_child(i) == other.get_child(i) for i in range(self.arity)])
+
+    def semantically_equals(self, other: Node, X: np.ndarray) -> bool:
+        """
+        Check if two trees are semantically equal.
+
+        Parameters
+        ----------
+        other : Node
+          another tree
+
+        X : np.ndarray
+          small numerical dataset that is used to check whether the two trees output the same results
+
+        Returns
+        -------
+        bool
+          whether the two trees are semantically equal
+        """
+        return np.array_equal(self(X), other(X))
 
     def get_subtree(self) -> list:
         """
@@ -378,6 +415,3 @@ class Node:
             if levels[l] > properties_dict["max_breadth"]:
                 properties_dict["max_breadth"] = levels[l]
         return properties_dict
-
-    def __deepcopy__(self):
-        return tree_from_prefix_repr(str(self.get_subtree()))
