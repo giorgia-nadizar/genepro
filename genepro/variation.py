@@ -193,7 +193,7 @@ def node_level_crossover(tree: Node, donor: Node, same_depth: bool = False, prob
 
 
 def safe_node_level_crossover_two_children(tree1: Node, tree2: Node, same_depth: bool = False,
-                                           prob_swap: float = 0.8) -> tuple[Node, Node]:
+                                           prob_swap: float = 0.1) -> tuple[Node, Node]:
     """
     Performs crossover at the level of single nodes, without changing the original trees
 
