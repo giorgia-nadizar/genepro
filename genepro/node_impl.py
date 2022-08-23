@@ -222,16 +222,24 @@ class Feature(Node):
 
 
 class Constant(Node):
-    def __init__(self, value: float = None):
+    def __init__(self, value: float = None, low: float = -5.0, high: float = 5.0):
         super(Constant, self).__init__()
+        if not(low < high):
+            raise AttributeError(f"Lower bound and upper bound must be ordered. Lower bound is {low} while upper bound is {high}. Hence, lower bound is greater than or equal to higher bound, which is not acceptable.")
         self.arity = 0
         self.__value = value
+        self.__low = low
+        self.__high = high
         self.symb = str(value) if value is not None else "const?"
+        if not self.__value:
+            # sample uniformly between -5 and +5 by default
+            self.__value = np.random.uniform(self.__low, self.__high)
+            self.symb = str(self.__value)
 
     def get_value(self):
         if not self.__value:
-            # sample uniformly between -5 and +5
-            self.__value = np.random.uniform() * 10 - 5
+            # sample uniformly between -5 and +5 by default
+            self.__value = np.random.uniform(self.__low, self.__high)
             self.symb = str(self.__value)
         return self.__value
 
