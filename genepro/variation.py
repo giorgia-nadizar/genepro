@@ -504,23 +504,23 @@ def __undergo_variation_operator(var_op: dict, offspring: Node,
                                  crossovers, mutations, coeff_opts,
                                  donor, internal_nodes, leaf_nodes) -> Node:
     # decide whether to actually do something
-    if var_op["rate"] > randu():
+    if var_op["rate"] < randu():
         # nope
         return offspring
 
-    # prepare the function to call
-    var_op_fun = var_op["fun"]
-    # next, we need to provide the right arguments based on the type of ops
-    if var_op in crossovers:
-        # we need a donor
-        offspring = var_op_fun(offspring, donor, **var_op["kwargs"])
-    elif var_op in mutations:
-        # we need to provide node types
-        offspring = var_op_fun(offspring, internal_nodes, leaf_nodes, **var_op["kwargs"])
-    elif var_op in coeff_opts:
-        offspring = var_op_fun(offspring, **var_op["kwargs"])
+        # prepare the function to call
+        var_op_fun = var_op["fun"]
+        # next, we need to provide the right arguments based on the type of ops
+        if var_op in crossovers:
+            # we need a donor
+            offspring = var_op_fun(offspring, donor, **var_op["kwargs"])
+        elif var_op in mutations:
+            # we need to provide node types
+            offspring = var_op_fun(offspring, internal_nodes, leaf_nodes, **var_op["kwargs"])
+        elif var_op in coeff_opts:
+            offspring = var_op_fun(offspring, **var_op["kwargs"])
 
-    return offspring
+        return offspring
 
 
 def __check_tree_meets_all_constraints(tree: Node, constraints: dict = dict()) -> bool:
