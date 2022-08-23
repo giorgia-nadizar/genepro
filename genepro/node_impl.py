@@ -224,8 +224,10 @@ class Feature(Node):
 class Constant(Node):
     def __init__(self, value: float = None, low: float = -5.0, high: float = 5.0):
         super(Constant, self).__init__()
-        if not(low < high):
-            raise AttributeError(f"Lower bound and upper bound must be ordered. Lower bound is {low} while upper bound is {high}. Hence, lower bound is greater than or equal to higher bound, which is not acceptable.")
+        if not (low < high):
+            raise AttributeError(
+                f"Lower bound and upper bound must be ordered. Lower bound is {low} while upper bound is {high}. "
+                f"Hence, lower bound is greater than or equal to higher bound, which is not acceptable.")
         self.arity = 0
         self.__value = value
         self.__low = low
@@ -269,7 +271,8 @@ class Power(Node):
 
     def get_output(self, X):
         c_outs = self._get_child_outputs(X)
-        return np.power(c_outs[0], c_outs[1])
+        # implements a protection to avoid raising negative values to non-integral values
+        return np.power(np.abs(c_outs[0]), c_outs[1])
 
 
 class Arcsin(Node):
@@ -283,7 +286,8 @@ class Arcsin(Node):
 
     def get_output(self, X):
         c_outs = self._get_child_outputs(X)
-        return np.arcsin(c_outs[0])
+        # implements a protection to avoid arg out of [-1,1]
+        return np.arcsin(1 if c_outs[0] > 1 else -1 if c_outs[0] < -1 else c_outs[0])
 
 
 class Tanh(Node):
