@@ -26,3 +26,9 @@ if __name__ == "__main__":
     b.symb = "/"
     print(a == b)
     print(a.semantically_equals(b, np.array([[1,5,3,1],[6,4,3,5],[2,1,2,4],[6,4,5,7],[2,3,4,1],[5,4,2,1]])))
+    d = {0: "a"}
+    dd = {1: "b"}
+    ddd = {2: "c", 3: "d"}
+    d.update(dd)
+    d.update(ddd)
+    print(d)

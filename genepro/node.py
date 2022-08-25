@@ -371,7 +371,7 @@ class Node:
         """
         representation = {node_index: self.symb}
         for i in range(self.arity):
-            representation = representation | self._children[i].get_dict_repr(max_arity, node_index * max_arity + 1 + i)
+            representation.update(self._children[i].get_dict_repr(max_arity, node_index * max_arity + 1 + i))
         return representation
 
     def tree_numerical_properties(self) -> dict:
