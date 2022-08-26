@@ -110,7 +110,7 @@ def counts_encode_tree(tree: Node, operators: list, n_features: int, max_depth: 
     These numerical properties are listed below:
         - (height + 1) / number of nodes
         - max arity / max breadth
-        - number of leaf nodes / number of internal nodes
+        - number of leaf nodes / number of nodes
 
     Parameters
     ----------
@@ -164,8 +164,8 @@ def counts_encode_tree(tree: Node, operators: list, n_features: int, max_depth: 
         properties_dict = tree.tree_numerical_properties()
         height_n_nodes_ratio = (properties_dict["height"] + 1.0) / float(properties_dict["n_nodes"])
         max_arity_breadth_ratio = properties_dict["max_arity"] / float(properties_dict["max_breadth"])
-        leaf_internal_ratio = properties_dict["n_leaf_nodes"] / float(properties_dict["n_internal_nodes"]) if properties_dict["n_internal_nodes"] != 0 else 0.0
-        counts = counts + [height_n_nodes_ratio, max_arity_breadth_ratio, leaf_internal_ratio]
+        leaf_nodes_ratio = properties_dict["n_leaf_nodes"] / float(properties_dict["n_nodes"])
+        counts = counts + [height_n_nodes_ratio, max_arity_breadth_ratio, leaf_nodes_ratio]
     return counts
 
 
@@ -182,7 +182,6 @@ def counts_level_wise_encode_tree(tree: Node, operators: list, n_features: int, 
         - (height + 1) / number of nodes
         - max arity / max breadth
         - number of leaf nodes / number of nodes
-    Each raw count is scaled between 0 and 1.
 
     Parameters
     ----------
@@ -223,15 +222,15 @@ def counts_level_wise_encode_tree(tree: Node, operators: list, n_features: int, 
             if node_index in dictionary_encoded_tree:
                 node_content = dictionary_encoded_tree[node_index]
                 if node_content in operators:
-                    curr_counts[operators.index(node_content)] += 1.0/float(curr_n_nodes)
+                    curr_counts[operators.index(node_content)] += 1.0
                 elif node_content.startswith("x_"):
                     feature_index = int(node_content[2:])
                     if feature_index < n_features:
-                        curr_counts[len(operators) + feature_index] += 1.0/float(curr_n_nodes)
+                        curr_counts[len(operators) + feature_index] += 1.0
                     else:
                         raise Exception(f"More features than declared. Declared: {n_features}. Feature index found: {feature_index}.")
                 elif re.search(r'^[+-]?\d+(\.\d+)?([Ee][+-]?\d+)?$', node_content) or isinstance(node_content, float) or isinstance(node_content, int):
-                    curr_counts[size - 1] += 1.0/float(curr_n_nodes)
+                    curr_counts[size - 1] += 1.0
                 else:
                     raise Exception(f"Unexpected node content: {str(node_content)}.")
             node_index += 1
