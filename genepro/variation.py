@@ -308,7 +308,7 @@ def subtree_mutation(tree: Node, internal_nodes: list, leaf_nodes: list,
     n = __sample_node(tree, unif_depth)
     # generate a random branch
     # TODO
-    branch = generate_random_tree(internal_nodes, leaf_nodes, max_depth - n.get_depth(), prob_leaf)
+    branch = generate_random_tree(internal_nodes, leaf_nodes, max_depth - n.get_depth())
     # swap
     p = n.parent
     if p:
