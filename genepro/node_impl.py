@@ -290,6 +290,21 @@ class Arcsin(Node):
         return np.arcsin(1 if c_outs[0] > 1 else -1 if c_outs[0] < -1 else c_outs[0])
 
 
+class Arccos(Node):
+    def __init__(self):
+        super(Arccos, self).__init__()
+        self.arity = 1
+        self.symb = "arccos"
+
+    def _get_args_repr(self, args):
+        return self._get_typical_repr(args, 'before')
+
+    def get_output(self, X):
+        c_outs = self._get_child_outputs(X)
+        # implements a protection to avoid arg out of [-1,1]
+        return np.arccos(1 if c_outs[0] > 1 else -1 if c_outs[0] < -1 else c_outs[0])
+
+
 class Tanh(Node):
     def __init__(self):
         super(Tanh, self).__init__()
