@@ -31,7 +31,7 @@ def generate_random_tree(internal_nodes: list, leaf_nodes: list, max_depth: int,
     """
 
     # heuristic to generate a semi-normal centered on relatively large trees
-    prob_leaf = 0.01 + (curr_depth / max_depth) ** 3
+    prob_leaf = (0.01 + (curr_depth / max_depth) ** 3) if max_depth != 0 else 1.0
 
     if curr_depth == max_depth or randu() < prob_leaf:
         n = deepcopy(randc(leaf_nodes))
@@ -296,7 +296,7 @@ def subtree_mutation(tree: Node, internal_nodes: list, leaf_nodes: list,
     unif_depth : bool, optional
       whether uniform random depth sampling is used to pick the root of the subtree to mutate (default is True)
     max_depth : int, optional
-      the maximal depth of the mutated branch (default is 4)
+      the maximal depth of the offspring (default is 4)
     prob_leaf : float, optional
       the probability of sampling a leaf when generating the mutated branch (default is 0.25)
     Returns
@@ -308,7 +308,7 @@ def subtree_mutation(tree: Node, internal_nodes: list, leaf_nodes: list,
     n = __sample_node(tree, unif_depth)
     # generate a random branch
     # TODO
-    branch = generate_random_tree(internal_nodes, leaf_nodes, max_depth, prob_leaf)
+    branch = generate_random_tree(internal_nodes, leaf_nodes, max_depth - n.get_depth(), prob_leaf)
     # swap
     p = n.parent
     if p:
@@ -336,7 +336,7 @@ def safe_subtree_mutation(tree: Node, internal_nodes: list, leaf_nodes: list,
     unif_depth : bool, optional
       whether uniform random depth sampling is used to pick the root of the subtree to mutate (default is True)
     max_depth : int, optional
-      the maximal depth of the mutated branch (default is 4)
+      the maximal depth of the offspring (default is 4)
     prob_leaf : float, optional
       the probability of sampling a leaf when generating the mutated branch (default is 0.25)
     Returns
