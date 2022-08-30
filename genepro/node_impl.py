@@ -287,7 +287,8 @@ class Arcsin(Node):
     def get_output(self, X):
         c_outs = self._get_child_outputs(X)
         # implements a protection to avoid arg out of [-1,1]
-        return np.arcsin(1 if c_outs[0] > 1 else -1 if c_outs[0] < -1 else c_outs[0])
+        cap = [1 if n > 1 else -1 if n < -1 else n for n in c_outs[0]]
+        return np.arcsin(cap)
 
 
 class Arccos(Node):
@@ -302,7 +303,8 @@ class Arccos(Node):
     def get_output(self, X):
         c_outs = self._get_child_outputs(X)
         # implements a protection to avoid arg out of [-1,1]
-        return np.arccos(1 if c_outs[0] > 1 else -1 if c_outs[0] < -1 else c_outs[0])
+        cap = [1 if n > 1 else -1 if n < -1 else n for n in c_outs[0]]
+        return np.arccos(cap)
 
 
 class Tanh(Node):
