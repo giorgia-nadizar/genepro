@@ -353,7 +353,7 @@ def subtree_mutation(tree: Node, internal_nodes: list, leaf_nodes: list,
 
 
 def safe_subtree_mutation(tree: Node, internal_nodes: list, leaf_nodes: list,
-                          unif_depth: bool = True, max_depth: int = 4, prob_leaf: float = 0.25) -> Node:
+                          unif_depth: bool = True, max_depth: int = 4) -> Node:
     """
     Performs subtree mutation and returns the resulting offspring.
     Differs from subtree mutation as it is not done in place.
@@ -370,14 +370,12 @@ def safe_subtree_mutation(tree: Node, internal_nodes: list, leaf_nodes: list,
       whether uniform random depth sampling is used to pick the root of the subtree to mutate (default is True)
     max_depth : int, optional
       the maximal depth of the offspring (default is 4)
-    prob_leaf : float, optional
-      the probability of sampling a leaf when generating the mutated branch (default is 0.25)
     Returns
     -------
     Node
       the tree after mutation (warning: replace the original tree with the returned one to avoid undefined behavior)
     """
-    return subtree_mutation(deepcopy(tree), internal_nodes, leaf_nodes, unif_depth, max_depth, prob_leaf)
+    return subtree_mutation(deepcopy(tree), internal_nodes, leaf_nodes, unif_depth=unif_depth, max_depth=max_depth)
 
 
 def coeff_mutation(tree: Node, prob_coeff_mut: float = 0.25, temp: float = 0.25) -> Node:
