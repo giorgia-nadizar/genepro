@@ -29,7 +29,18 @@ def generate_random_tree(internal_nodes: list, leaf_nodes: list, max_depth: int,
     Node
       the root node of the generated tree
     """
-
+    if not isinstance(max_depth, int):
+        raise AttributeError(f"Max depth is not an integer: {max_depth}")
+    if not isinstance(curr_depth, int):
+        raise AttributeError(f"Curr depth is not an integer: {curr_depth}")
+    if max_depth < 0:
+        raise AttributeError(f"Max depth is negative: {max_depth}")
+    if curr_depth < 0:
+        raise AttributeError(f"Curr depth is negative: {curr_depth}")
+    if len(internal_nodes) == 0:
+        raise AttributeError("Internal nodes list is empty.")
+    if len(leaf_nodes) == 0:
+        raise AttributeError("Leaf nodes list is empty.")
     # heuristic to generate a semi-normal centered on relatively large trees
     prob_leaf = (0.01 + (curr_depth / max_depth) ** 3) if max_depth != 0 else 1.0
 
@@ -281,7 +292,7 @@ def safe_node_level_crossover_two_children(tree1: Node, tree2: Node, same_depth:
 
 
 def subtree_mutation(tree: Node, internal_nodes: list, leaf_nodes: list,
-                     unif_depth: bool = True, max_depth: int = 4, prob_leaf: float = 0.25) -> Node:
+                     unif_depth: bool = True, max_depth: int = 4) -> Node:
     """
     Performs subtree mutation and returns the resulting offspring
 
@@ -297,18 +308,22 @@ def subtree_mutation(tree: Node, internal_nodes: list, leaf_nodes: list,
       whether uniform random depth sampling is used to pick the root of the subtree to mutate (default is True)
     max_depth : int, optional
       the maximal depth of the offspring (default is 4)
-    prob_leaf : float, optional
-      the probability of sampling a leaf when generating the mutated branch (default is 0.25)
     Returns
     -------
     Node
       the tree after mutation (warning: replace the original tree with the returned one to avoid undefined behavior)
     """
+    if not isinstance(max_depth, int):
+        raise AttributeError(f"Max depth is not an integer: {max_depth}")
+    if max_depth < 0:
+        raise AttributeError(f"Max depth is negative: {max_depth}")
+    if tree.get_height() > max_depth:
+        raise ValueError(f"Max depth of offspring is set to be {max_depth} while height of the input tree is {tree.get_height()}. However, height of the tree must be at most equal to max depth.")
     # pick a subtree to replace
     n = __sample_node(tree, unif_depth)
     # generate a random branch
-    # TODO
-    branch = generate_random_tree(internal_nodes, leaf_nodes, max_depth - n.get_depth())
+    branch = generate_random_tree(internal_nodes=internal_nodes, leaf_nodes=leaf_nodes,
+                                  max_depth=max_depth - n.get_depth(), curr_depth=0)
     # swap
     p = n.parent
     if p:
