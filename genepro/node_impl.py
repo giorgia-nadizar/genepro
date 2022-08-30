@@ -73,7 +73,8 @@ class Square(Node):
 
     def get_output(self, X):
         c_outs = self._get_child_outputs(X)
-        return np.square(c_outs[0])
+        # Implement protection with clip to avoid overflow encoutered error and avoid getting inf as outputs
+        return np.square(np.clip(c_outs[0], -1.340780792993396e+100, 1.340780792993396e+100))
 
 
 class Cube(Node):
@@ -87,7 +88,8 @@ class Cube(Node):
 
     def get_output(self, X):
         c_outs = self._get_child_outputs(X)
-        return np.multiply(np.square(c_outs[0]), c_outs[0])
+        # Implement protection with clip to avoid overflow encoutered error and avoid getting inf as outputs
+        return np.power(np.clip(c_outs[0], -5.643803094119938e+70, 5.643803094119938e+70), 3)
 
 
 class Sqrt(Node):
@@ -134,7 +136,8 @@ class Exp(Node):
 
     def get_output(self, X):
         c_outs = self._get_child_outputs(X)
-        return np.exp(c_outs[0])
+        # Implement protection with clip to avoid overflow encoutered error and avoid getting inf as outputs
+        return np.exp(np.clip(c_outs[0], -700.78, 700.78))
 
 
 class Sin(Node):
@@ -259,7 +262,7 @@ class Constant(Node):
         v = self.get_value()
         return np.repeat(v, len(X))
 
-
+'''
 class Power(Node):
     def __init__(self):
         super(Power, self).__init__()
@@ -273,7 +276,7 @@ class Power(Node):
         c_outs = self._get_child_outputs(X)
         # implements a protection to avoid raising negative values to non-integral values
         return np.power(np.abs(c_outs[0]) + 1e-9, c_outs[1])
-
+'''
 
 class Arcsin(Node):
     def __init__(self):
@@ -287,8 +290,7 @@ class Arcsin(Node):
     def get_output(self, X):
         c_outs = self._get_child_outputs(X)
         # implements a protection to avoid arg out of [-1,1]
-        cap = [1 if n > 1 else -1 if n < -1 else n for n in c_outs[0]]
-        return np.arcsin(cap)
+        return np.arcsin(np.clip(c_outs[0], -1, 1))
 
 
 class Arccos(Node):
@@ -303,8 +305,7 @@ class Arccos(Node):
     def get_output(self, X):
         c_outs = self._get_child_outputs(X)
         # implements a protection to avoid arg out of [-1,1]
-        cap = [1 if n > 1 else -1 if n < -1 else n for n in c_outs[0]]
-        return np.arccos(cap)
+        return np.arccos(np.clip(c_outs[0], -1, 1))
 
 
 class Tanh(Node):
