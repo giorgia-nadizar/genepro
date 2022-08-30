@@ -262,7 +262,7 @@ class Constant(Node):
         v = self.get_value()
         return np.repeat(v, len(X))
 
-'''
+
 class Power(Node):
     def __init__(self):
         super(Power, self).__init__()
@@ -275,8 +275,16 @@ class Power(Node):
     def get_output(self, X):
         c_outs = self._get_child_outputs(X)
         # implements a protection to avoid raising negative values to non-integral values
-        return np.power(np.abs(c_outs[0]) + 1e-9, c_outs[1])
-'''
+        base = np.abs(c_outs[0]) + 1e-9
+        exponent = c_outs[1]
+        if exponent < 10.0:
+            exponent = np.clip(exponent, -9.0, 9.0)
+            base = np.clip(base, -100.0, 100.0)
+        else:
+            exponent = np.clip(exponent, -30.0, 30.0)
+            base = np.clip(base, -90.0, 90.0)
+        return np.power(base, exponent)
+
 
 class Arcsin(Node):
     def __init__(self):
