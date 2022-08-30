@@ -90,7 +90,7 @@ def subtree_crossover(tree: Node, donor: Node, unif_depth: int = True) -> Node:
     return tree
 
 
-def safe_subtree_crossover_two_children(tree1: Node, tree2: Node, unif_depth: int = True) -> tuple[Node, Node]:
+def safe_subtree_crossover_two_children(tree1: Node, tree2: Node, unif_depth: int = True, max_depth: int = 4) -> tuple[Node, Node]:
     """
     Performs subtree crossover and returns the resulting offsprings without changing the original trees
 
@@ -102,18 +102,36 @@ def safe_subtree_crossover_two_children(tree1: Node, tree2: Node, unif_depth: in
       the second tree participating in the crossover
     unif_depth : bool, optional
       whether uniform random depth sampling is used to pick the root of the subtrees to swap (default is True)
-
+    max_depth : int, optional
+      max depth of the offsprings (default is 4)
     Returns
     -------
     Node
       the trees after crossover
     """
+    if not isinstance(max_depth, int):
+        raise AttributeError(f"Max depth is not an integer: {max_depth}")
+    if max_depth < 0:
+        raise AttributeError(f"Max depth is negative: {max_depth}")
+    if tree1.get_height() > max_depth:
+        raise ValueError(f"Max depth of offspring is set to be {max_depth} while height of the first tree is {tree1.get_height()}. However, height of the first tree must be at most equal to max depth.")
+    if tree2.get_height() > max_depth:
+        raise ValueError(f"Max depth of offspring is set to be {max_depth} while height of the second tree is {tree2.get_height()}. However, height of the second tree must be at most equal to max depth.")
+
     tree1 = deepcopy(tree1)
     tree2 = deepcopy(tree2)
 
     # pick a subtree to replace
     child1 = __sample_node(tree1, unif_depth)
-    child2 = __sample_node(tree2, unif_depth)
+    tree1_mutated_branch_max_depth = max_depth - child1.get_depth()
+    child1_height = child1.get_height()
+    exit_loop = False
+    while not(exit_loop):
+        child2 = __sample_node(tree2, unif_depth)
+        tree2_mutated_branch_max_depth = max_depth - child2.get_depth()
+        child2_height = child2.get_height()
+        if child2_height <= tree1_mutated_branch_max_depth and child1_height <= tree2_mutated_branch_max_depth:
+            exit_loop = True
 
     # swap
     parent1 = child1.parent
