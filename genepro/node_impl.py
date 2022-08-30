@@ -277,12 +277,8 @@ class Power(Node):
         # implements a protection to avoid raising negative values to non-integral values
         base = np.abs(c_outs[0]) + 1e-9
         exponent = c_outs[1]
-        if exponent < 10.0:
-            exponent = np.clip(exponent, -9.0, 9.0)
-            base = np.clip(base, -100.0, 100.0)
-        else:
-            exponent = np.clip(exponent, -30.0, 30.0)
-            base = np.clip(base, -90.0, 90.0)
+        exponent = np.clip(exponent, -30.0, 30.0)
+        base = np.clip(base, -90.0, 90.0)
         return np.power(base, exponent)
 
 
