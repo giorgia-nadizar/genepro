@@ -272,7 +272,7 @@ class Power(Node):
     def get_output(self, X):
         c_outs = self._get_child_outputs(X)
         # implements a protection to avoid raising negative values to non-integral values
-        return np.power(np.abs(c_outs[0]), c_outs[1])
+        return np.power(np.abs(c_outs[0]) + 1e-9, c_outs[1])
 
 
 class Arcsin(Node):
