@@ -1,3 +1,5 @@
+from typing import Callable
+
 import numpy as np
 from numpy.random import random as randu
 from numpy.random import normal as randn
@@ -9,7 +11,7 @@ from genepro.node import Node
 from genepro.node_impl import Constant
 
 
-def generate_random_tree(internal_nodes: list, leaf_nodes: list, max_depth: int, curr_depth: int = 0):
+def generate_random_tree(internal_nodes: list, leaf_nodes: list, max_depth: int, curr_depth: int = 0, ephemeral_func: Callable = None):
     """
     Recursive method to generate a random tree containing the given types of nodes and up to the given maximum depth
 
@@ -23,6 +25,8 @@ def generate_random_tree(internal_nodes: list, leaf_nodes: list, max_depth: int,
       maximum depth of the tree (recall that the root node has depth 0)
     curr_depth : int
       the current depth of the tree under construction, it is set by default to 0 so that calls to `generate_random_tree` need not specify it
+    ephemeral_func: Callable
+      lambda expression with no parameters that generates a potentially different random constant every time this method is called, default is None, meaning that no ephemeral constant is generated
 
     Returns
     -------
@@ -44,13 +48,18 @@ def generate_random_tree(internal_nodes: list, leaf_nodes: list, max_depth: int,
     # heuristic to generate a semi-normal centered on relatively large trees
     prob_leaf = (0.01 + (curr_depth / max_depth) ** 3) if max_depth != 0 else 1.0
 
+    if ephemeral_func is None:
+        leaf_nodes_0 = leaf_nodes
+    else:
+        leaf_nodes_0 = leaf_nodes + [Constant(ephemeral_func())]
+
     if curr_depth == max_depth or randu() < prob_leaf:
-        n = deepcopy(randc(leaf_nodes))
+        n = deepcopy(randc(leaf_nodes_0))
     else:
         n = deepcopy(randc(internal_nodes))
 
     for _ in range(n.arity):
-        c = generate_random_tree(internal_nodes, leaf_nodes, max_depth, curr_depth + 1)
+        c = generate_random_tree(internal_nodes, leaf_nodes, max_depth, curr_depth + 1, ephemeral_func)
         n.insert_child(c)
 
     return n
@@ -310,7 +319,7 @@ def safe_node_level_crossover_two_children(tree1: Node, tree2: Node, same_depth:
 
 
 def subtree_mutation(tree: Node, internal_nodes: list, leaf_nodes: list,
-                     unif_depth: bool = True, max_depth: int = 4) -> Node:
+                     unif_depth: bool = True, max_depth: int = 4, ephemeral_func: Callable = None) -> Node:
     """
     Performs subtree mutation and returns the resulting offspring
 
@@ -326,6 +335,9 @@ def subtree_mutation(tree: Node, internal_nodes: list, leaf_nodes: list,
       whether uniform random depth sampling is used to pick the root of the subtree to mutate (default is True)
     max_depth : int, optional
       the maximal depth of the offspring (default is 4)
+    ephemeral_func: Callable
+      lambda expression with no parameters that generates a potentially different random constant every time this method is called, default is None, meaning that no ephemeral constant is generated
+
     Returns
     -------
     Node
@@ -341,7 +353,7 @@ def subtree_mutation(tree: Node, internal_nodes: list, leaf_nodes: list,
     n = __sample_node(tree, unif_depth)
     # generate a random branch
     branch = generate_random_tree(internal_nodes=internal_nodes, leaf_nodes=leaf_nodes,
-                                  max_depth=max_depth - n.get_depth(), curr_depth=0)
+                                  max_depth=max_depth - n.get_depth(), curr_depth=0, ephemeral_func=ephemeral_func)
     # swap
     p = n.parent
     if p:
@@ -353,7 +365,7 @@ def subtree_mutation(tree: Node, internal_nodes: list, leaf_nodes: list,
 
 
 def safe_subtree_mutation(tree: Node, internal_nodes: list, leaf_nodes: list,
-                          unif_depth: bool = True, max_depth: int = 4) -> Node:
+                          unif_depth: bool = True, max_depth: int = 4, ephemeral_func: Callable = None) -> Node:
     """
     Performs subtree mutation and returns the resulting offspring.
     Differs from subtree mutation as it is not done in place.
@@ -370,12 +382,15 @@ def safe_subtree_mutation(tree: Node, internal_nodes: list, leaf_nodes: list,
       whether uniform random depth sampling is used to pick the root of the subtree to mutate (default is True)
     max_depth : int, optional
       the maximal depth of the offspring (default is 4)
+    ephemeral_func: Callable
+      lambda expression with no parameters that generates a potentially different random constant every time this method is called, default is None, meaning that no ephemeral constant is generated
+
     Returns
     -------
     Node
       the tree after mutation (warning: replace the original tree with the returned one to avoid undefined behavior)
     """
-    return subtree_mutation(deepcopy(tree), internal_nodes, leaf_nodes, unif_depth=unif_depth, max_depth=max_depth)
+    return subtree_mutation(deepcopy(tree), internal_nodes, leaf_nodes, unif_depth=unif_depth, max_depth=max_depth, ephemeral_func=ephemeral_func)
 
 
 def coeff_mutation(tree: Node, prob_coeff_mut: float = 0.25, temp: float = 0.25) -> Node:

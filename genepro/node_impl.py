@@ -242,10 +242,6 @@ class Constant(Node):
             self.symb = str(self.__value)
 
     def get_value(self):
-        if not self.__value:
-            # sample uniformly between -5 and +5 by default
-            self.__value = np.random.uniform(self.__low, self.__high)
-            self.symb = str(self.__value)
         return self.__value
 
     def set_value(self, value: float):
