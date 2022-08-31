@@ -155,7 +155,7 @@ def counts_encode_tree(tree: Node, operators: list, n_features: int, max_depth: 
                     counts[len(operators) + feature_index] += 1.0
                 else:
                     raise Exception(f"More features than declared. Declared: {n_features}. Feature index found: {feature_index}.")
-            elif re.search(r'^[+-]?\d+(\.\d+)?([Ee][+-]?\d+)?$', node_content) or isinstance(node_content, float) or isinstance(node_content, int):
+            elif (isinstance(node_content, str) and re.search(r'^[+-]?\d+(\.\d+)?([Ee][+-]?\d+)?$', node_content)) or isinstance(node_content, float) or isinstance(node_content, int):
                 counts[size - 1] += 1.0
             else:
                 raise Exception(f"Unexpected node content: {str(node_content)}.")
@@ -229,7 +229,7 @@ def counts_level_wise_encode_tree(tree: Node, operators: list, n_features: int, 
                         curr_counts[len(operators) + feature_index] += 1.0
                     else:
                         raise Exception(f"More features than declared. Declared: {n_features}. Feature index found: {feature_index}.")
-                elif re.search(r'^[+-]?\d+(\.\d+)?([Ee][+-]?\d+)?$', node_content) or isinstance(node_content, float) or isinstance(node_content, int):
+                elif (isinstance(node_content, str) and re.search(r'^[+-]?\d+(\.\d+)?([Ee][+-]?\d+)?$', node_content)) or isinstance(node_content, float) or isinstance(node_content, int):
                     curr_counts[size - 1] += 1.0
                 else:
                     raise Exception(f"Unexpected node content: {str(node_content)}.")
@@ -242,6 +242,91 @@ def counts_level_wise_encode_tree(tree: Node, operators: list, n_features: int, 
         max_arity_breadth_ratio = properties_dict["max_arity"] / float(properties_dict["max_breadth"])
         leaf_nodes_ratio = properties_dict["n_leaf_nodes"] / float(properties_dict["n_nodes"])
         counts = counts + [height_n_nodes_ratio, max_arity_breadth_ratio, leaf_nodes_ratio]
+    return counts
+
+
+def counts_level_wise_encode_tree_fast(tree: Node, operators: list, n_features: int, max_depth: int, max_arity: int, additional_properties: bool = False) -> list:
+    """
+    Fast version of counts_level_wise_encode_tree method
+
+    Parameters
+    ----------
+    tree : Node
+      tree to be counts encoded
+
+    operators : list
+      list of all possible symbols allowed for operators
+
+    n_features : int
+      amount of allowed features in the tree
+
+    max_depth : int
+      maximal depth of the tree
+
+    max_arity : int
+      maximal arity of the tree
+
+    additional_properties: bool
+      if this flag is True, then the output list will be extended with a list of numerical properties of the given tree.
+      These properties are computed using the dictionary returned
+      by the genepro.node.tree_numerical_properties method.
+      Default value is False.
+
+    Returns
+    -------
+      list
+        the counts encoded tree
+    """
+    size = len(operators) + n_features + 1
+    counts = [0.0] * (size * (max_depth + 1))
+
+    stack = [(tree, 0)]
+    properties_dict = {k: 0.0 for k in
+                       ["height", "n_nodes", "max_arity", "max_breadth", "n_leaf_nodes", "n_internal_nodes"]}
+    levels = {}
+    while len(stack) > 0:
+        curr_node, curr_level = stack.pop(len(stack) - 1)
+        if additional_properties:
+            properties_dict["n_nodes"] += 1.0
+            curr_depth, curr_arity = curr_level, curr_node.arity
+            if curr_depth > properties_dict["height"]:
+                properties_dict["height"] = curr_depth
+            if curr_arity > properties_dict["max_arity"]:
+                properties_dict["max_arity"] = curr_arity
+            if curr_arity == 0:
+                properties_dict["n_leaf_nodes"] += 1.0
+            else:
+                properties_dict["n_internal_nodes"] += 1.0
+            if curr_depth not in levels:
+                levels[curr_depth] = 0.0
+            levels[curr_depth] += 1.0
+        start_index = curr_level * size
+        node_content = curr_node.symb
+        if node_content in operators:
+            counts[start_index + operators.index(node_content)] += 1.0
+        elif node_content.startswith("x_"):
+            feature_index = int(node_content[2:])
+            if feature_index < n_features:
+                counts[start_index + len(operators) + feature_index] += 1.0
+            else:
+                raise Exception(
+                    f"More features than declared. Declared: {n_features}. Feature index found: {feature_index}.")
+        elif (isinstance(node_content, str) and re.search(r'^[+-]?\d+(\.\d+)?([Ee][+-]?\d+)?$', node_content)) or isinstance(node_content, float) or isinstance(node_content, int):
+            counts[start_index + size - 1] += 1.0
+        else:
+            raise Exception(f"Unexpected node content: {str(node_content)}.")
+        for child_index in range(curr_node.arity - 1, -1, -1):
+            stack.append((curr_node.get_child(child_index), curr_level + 1))
+
+    if additional_properties:
+        for l in levels:
+            if levels[l] > properties_dict["max_breadth"]:
+                properties_dict["max_breadth"] = levels[l]
+        height_n_nodes_ratio = (properties_dict["height"] + 1.0) / float(properties_dict["n_nodes"])
+        max_arity_breadth_ratio = properties_dict["max_arity"] / float(properties_dict["max_breadth"])
+        leaf_nodes_ratio = properties_dict["n_leaf_nodes"] / float(properties_dict["n_nodes"])
+        counts = counts + [height_n_nodes_ratio, max_arity_breadth_ratio, leaf_nodes_ratio]
+
     return counts
 
 
@@ -288,7 +373,7 @@ def one_hot_encode_tree(tree: Node, operators: list, n_features: int, max_depth:
                     current_encoding[len(operators) + feature_index] = 1.0
                 else:
                     raise Exception(f"More features than declared. Declared: {n_features}. Feature index found: {feature_index}.")
-            elif re.search(r'^[+-]?\d+(\.\d+)?([Ee][+-]?\d+)?$', node_content) or isinstance(node_content, float) or isinstance(node_content, int):
+            elif (isinstance(node_content, str) and re.search(r'^[+-]?\d+(\.\d+)?([Ee][+-]?\d+)?$', node_content)) or isinstance(node_content, float) or isinstance(node_content, int):
                 current_encoding[size - 1] = 1.0
             else:
                 raise Exception(f"Unexpected node content: {str(node_content)}.")

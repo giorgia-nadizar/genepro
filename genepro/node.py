@@ -415,3 +415,56 @@ class Node:
             if levels[l] > properties_dict["max_breadth"]:
                 properties_dict["max_breadth"] = levels[l]
         return properties_dict
+
+    def get_string_as_tree(self):
+        """
+        Returns a string representation of tree in the form of a tree with square brackets around nodes
+
+        Returns
+        -------
+        str
+          string representation
+        """
+        s = ""
+        depth = self.get_height()
+        s += "  " * (depth + 1)
+        nodes = [(self, 0)]
+        subtree = []
+        while len(nodes) > 0:
+            curr_node, curr_level = nodes.pop(0)
+            subtree.append((curr_node, curr_level))
+            for i in range(curr_node.arity):
+                nodes.append((curr_node.get_child(i), curr_level + 1))
+        curr_layer = 0
+        for curr_node, curr_level in subtree:
+            if curr_level > curr_layer:
+                curr_layer = curr_level
+                s += "\n"
+                depth -= 1
+                s += "  " * (depth + 1)
+            s += "  [" + curr_node.symb + "] "
+        return s
+
+    def get_string_as_lisp_expr(self):
+        """
+        Returns a string representation of tree in the form of a lisp expression
+
+        Returns
+        -------
+        str
+          string representation
+        """
+        s = ""
+        nodes = [self]
+        while len(nodes) > 0:
+            curr_node = nodes.pop(len(nodes) - 1)
+            if isinstance(curr_node, str):
+                s += curr_node + " "
+            else:
+                s += curr_node.symb + " "
+                if curr_node.arity > 0:
+                    nodes.append(")")
+                    for i in range(curr_node.arity - 1, -1, -1):
+                        nodes.append(curr_node.get_child(i))
+                    nodes.append("(")
+        return s.strip()
