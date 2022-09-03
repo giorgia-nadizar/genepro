@@ -41,7 +41,7 @@ class Times(Node):
 
     def get_output(self, X):
         c_outs = self._get_child_outputs(X)
-        return np.multiply(np.clip(c_outs[0], -1e+200, 1e+200), np.clip(c_outs[1], -1e+200, 1e+200))
+        return np.multiply(np.clip(c_outs[0], -1e+100, 1e+100), np.clip(c_outs[1], -1e+100, 1e+100))
 
 
 class Div(Node):
@@ -58,7 +58,7 @@ class Div(Node):
         # implements a protection to avoid dividing by 0
         sign_b = np.sign(c_outs[1])
         sign_b = np.where(sign_b == 0, 1, sign_b)
-        protected_div = sign_b * np.clip(c_outs[0], -1e+200, 1e+200) / (np.clip(np.abs(np.clip(c_outs[1], -1e+200, 1e+200)), 1e-9, 1e+200))
+        protected_div = sign_b * np.clip(c_outs[0], -1e+100, 1e+100) / (np.clip(np.abs(np.clip(c_outs[1], -1e+100, 1e+100)), 1e-9, 1e+100))
         return protected_div
 
 
