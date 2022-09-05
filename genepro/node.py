@@ -66,9 +66,9 @@ class Node:
         """
         return self.get_output(X)
 
-    def __eq__(self, other: Node) -> bool:
+    def structurally_equal(self, other: Node) -> bool:
         """
-        Check if two trees are exactly the same.
+        Check if two trees are exactly the same as regards their structure.
 
         Parameters
         ----------
@@ -78,7 +78,7 @@ class Node:
         Returns
         -------
         bool
-          whether the two trees are equal
+          whether the two trees are structurally equal
         """
         if self.arity != other.arity or self.symb != other.symb:
             return False
@@ -86,7 +86,7 @@ class Node:
             return True
         return all([self.get_child(i) == other.get_child(i) for i in range(self.arity)])
 
-    def semantically_equals(self, other: Node, X: np.ndarray) -> bool:
+    def semantically_equal(self, other: Node, X: np.ndarray) -> bool:
         """
         Check if two trees are semantically equal.
 
@@ -162,6 +162,7 @@ class Node:
         int
           index specifying the position of c in the attribute _children
         """
+        i = -1
         assert (c in self._children)
         for i, oc in enumerate(self._children):
             if c == oc:
@@ -211,14 +212,14 @@ class Node:
         int
           the height of this node
         """
-        curr_depth = self.get_depth()
-        leaves = [x for x in self.get_subtree() if x.arity == 0]
-        max_h = 0
-        for l in leaves:
-            d = l.get_depth()
-            if d > max_h:
-                max_h = d
-        return max_h - curr_depth
+        nodes = [(self, 0)]
+        height = 0
+        while len(nodes) > 0:
+            curr_node, curr_level = nodes.pop(len(nodes) - 1)
+            height = max(height, curr_level)
+            for i in range(curr_node.arity):
+                nodes.append((curr_node.get_child(i), curr_level + 1))
+        return height
 
     def get_n_nodes(self) -> int:
         """

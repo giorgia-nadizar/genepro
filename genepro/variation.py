@@ -146,17 +146,22 @@ def safe_subtree_crossover_two_children(tree1: Node, tree2: Node, unif_depth: in
     parent1 = child1.parent
     parent2 = child2.parent
 
+    new_child1 = deepcopy(child1)
+    new_child2 = deepcopy(child2)
+    new_child1.parent = None
+    new_child2.parent = None
+
     if parent1:
         i = parent1.detach_child(child1)
-        parent1.insert_child(child2, i)
+        parent1.insert_child(new_child2, i)
     else:
-        tree1 = child2
+        tree1 = new_child2
 
     if parent2:
         i = parent2.detach_child(child2)
-        parent2.insert_child(child1, i)
+        parent2.insert_child(new_child1, i)
     else:
-        tree2 = child1
+        tree2 = new_child1
 
     return tree1, tree2
 
