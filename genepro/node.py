@@ -20,6 +20,8 @@ class Node:
       number of input arguments this node accepts (e.g., 2 for Plus, 1 for Log)
     _children : list
       list of nodes that are children whose parent is this node (warning: do not write on this field directly, use `insert_child` or `detach_child`)
+    child_id : id
+      id that goes from 0 to len(_children)-1. It represents an ID for the node as children of a given parent (-1 if the node has no parent)
     """
 
     def __init__(self):
@@ -28,6 +30,7 @@ class Node:
         self.parent = None
         self.arity = 0
         self._children = list()
+        self.child_id = -1
 
     def __repr__(self) -> str:
         """
@@ -142,11 +145,49 @@ class Node:
         i : int, optional
           the position at which to insert c (default is None, in which case c is appended)
         """
+        children_list_length = len(self._children)
         if i is None:
+            if children_list_length == 0:
+                new_child_id = 0
+            else:
+                new_child_id = self._children[children_list_length - 1].child_id + 1
             self._children.append(c)
+            c.child_id = new_child_id
         else:
             self._children.insert(i, c)
+            for iii in range(i, len(self._children)):
+                self._children[iii].child_id = iii
         c.parent = self
+
+    def replace_child(self, c: Node, i: int):
+        """
+        Replace the node at the given position with the provided node
+
+        Parameters
+        ----------
+        c : Node
+          the node to insert as a child of this node
+        i : int, optional
+          the position at which to insert c while replacing the previous node
+        """
+        self._children[i].parent = None
+        self._children[i].child_id = -1
+        self._children[i] = c
+        c.child_id = i
+        c.parent = self
+
+    def remove_child(self, i: int):
+        """
+        Remove the node at the given position
+
+        Parameters
+        ----------
+        i : int, optional
+          the position of the node to remove
+        """
+        c = self._children.pop(i)
+        c.parent = None
+        c.child_id = -1
 
     def detach_child(self, c: Node) -> int:
         """
@@ -168,6 +209,7 @@ class Node:
             if c == oc:
                 self._children.pop(i)
                 c.parent = None
+                c.child_id = -1
                 break
         return i
 

@@ -89,11 +89,11 @@ def subtree_crossover(tree: Node, donor: Node, unif_depth: int = True) -> Node:
 
     # remove ref to parent of m
     m.parent = None
+    m.child_id = -1
     # swap
     p = n.parent
     if p:
-        i = p.detach_child(n)
-        p.insert_child(m, i)
+        p.replace_child(m, n.child_id)
     else:
         tree = m
     return tree
@@ -149,17 +149,17 @@ def safe_subtree_crossover_two_children(tree1: Node, tree2: Node, unif_depth: in
     new_child1 = deepcopy(child1)
     new_child2 = deepcopy(child2)
     new_child1.parent = None
+    new_child1.child_id = -1
     new_child2.parent = None
+    new_child2.child_id = -1
 
     if parent1:
-        i = parent1.detach_child(child1)
-        parent1.insert_child(new_child2, i)
+        parent1.replace_child(new_child2, child1.child_id)
     else:
         tree1 = new_child2
 
     if parent2:
-        i = parent2.detach_child(child2)
-        parent2.insert_child(new_child1, i)
+        parent2.replace_child(new_child1, child2.child_id)
     else:
         tree2 = new_child1
 
@@ -222,11 +222,11 @@ def node_level_crossover(tree: Node, donor: Node, same_depth: bool = False, prob
             # swap
             m = deepcopy(randc(compatible_nodes))
             m.parent = None
+            m.child_id = -1
             m._children = list()
             p = n.parent
             if p:
-                i = p.detach_child(n)
-                p.insert_child(m, i)
+                p.replace_child(m, n.child_id)
             else:
                 tree = m
             for c in n._children:
@@ -296,29 +296,36 @@ def safe_node_level_crossover_two_children(tree1: Node, tree2: Node, same_depth:
             # swap
             child2 = randc(compatible_nodes)
 
-            parent2 = child2.parent
-            children2 = child2._children
             parent1 = child1.parent
-            children1 = child1._children
+            parent2 = child2.parent
 
-            child1._children = list()
-            child2._children = list()
+            children1 = child1._children
+            children2 = child2._children
+
+            new_child1 = deepcopy(child1)
+            new_child2 = deepcopy(child2)
+
+            new_child1._children = list()
+            new_child2._children = list()
+
+            new_child1.parent = None
+            new_child1.child_id = -1
+            new_child2.parent = None
+            new_child2.child_id = -1
 
             if parent1:
-                i = parent1.detach_child(child1)
-                parent1.insert_child(child2, i)
+                parent1.replace_child(new_child2, child1.child_id)
             else:
-                tree1 = child2
+                tree1 = new_child2
             for c in children1:
-                child2.insert_child(c)
+                new_child2.insert_child(c)
 
             if parent2:
-                i = parent2.detach_child(child2)
-                parent2.insert_child(child1, i)
+                parent2.replace_child(new_child1, child2.child_id)
             else:
-                tree2 = child1
+                tree2 = new_child1
             for c in children2:
-                child1.insert_child(c)
+                new_child1.insert_child(c)
 
     return tree1, tree2
 
@@ -362,8 +369,7 @@ def subtree_mutation(tree: Node, internal_nodes: list, leaf_nodes: list,
     # swap
     p = n.parent
     if p:
-        i = p.detach_child(n)
-        p.insert_child(branch, i)
+        p.replace_child(branch, n.child_id)
     else:
         tree = branch
     return tree
