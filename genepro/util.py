@@ -367,7 +367,7 @@ def compute_linear_model_discovered_in_math_formula_interpretability_paper(tree:
     n_non_arithmetic_operations = 0
 
     if difficult_operators is None:
-        difficult_operators = ['**2', '**3', '**', 'sqrt', 'log', 'exp', 'sin', 'cos', 'arcsin', 'arccos', 'tanh', 'sigmoid']
+        difficult_operators = ['**2', '**3', '**', 'sqrt', 'log', 'exp', 'sin', 'cos', 'arcsin', 'arccos', 'tanh', 'sigmoid', 'cotanh', 'arctanh', 'arccotanh', 'sinh', 'cosh', 'arcsinh', 'arccosh', 'tan', 'cotan', 'arctan', 'arccotan']
 
     while len(stack) > 0:
         curr_node, curr_level = stack.pop(len(stack) - 1)
