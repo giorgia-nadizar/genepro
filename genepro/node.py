@@ -21,7 +21,7 @@ class Node:
     _children : list
       list of nodes that are children whose parent is this node (warning: do not write on this field directly, use `insert_child` or `detach_child`)
     child_id : id
-      id that goes from 0 to len(_children)-1. It represents an ID for the node as children of a given parent (-1 if the node has no parent)
+      id that goes from 0 to len(parent._children)-1. It represents an ID for the node as children of a given parent (-1 if the node has no parent)
     """
 
     def __init__(self):
