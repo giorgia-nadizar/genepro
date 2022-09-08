@@ -1,4 +1,7 @@
 from __future__ import annotations
+
+import re
+
 import numpy as np
 
 
@@ -458,6 +461,75 @@ class Node:
             if levels[l] > properties_dict["max_breadth"]:
                 properties_dict["max_breadth"] = levels[l]
         return properties_dict
+
+    def retrieve_operators_from_tree(self):
+        """
+        Returns a list of operator symbols that are represented in the tree
+
+        Returns
+        -------
+        list
+          list of operator symbols that are represented in the tree
+        """
+        stack = [self]
+        operators = []
+        
+        while len(stack) > 0:
+            curr_node = stack.pop(len(stack) - 1)
+            node_content = curr_node.symb
+            if not((isinstance(node_content, str) and re.search(r'^[+-]?\d+(\.\d+)?([Ee][+-]?\d+)?$',
+                                                              node_content)) or isinstance(node_content,
+                                                                                           float) or isinstance(
+                    node_content, int)) and not(node_content.startswith("x_")):
+                operators.append(node_content)
+            for i in range(curr_node.arity):
+                stack.append(curr_node.get_child(i))
+        return operators
+
+    def retrieve_features_from_tree(self):
+        """
+        Returns a list of feature symbols that are represented in the tree
+
+        Returns
+        -------
+        list
+          list of feature symbols that are represented in the tree
+        """
+        stack = [self]
+        features = []
+
+        while len(stack) > 0:
+            curr_node = stack.pop(len(stack) - 1)
+            node_content = curr_node.symb
+            if node_content.startswith("x_"):
+                features.append(node_content)
+            for i in range(curr_node.arity):
+                stack.append(curr_node.get_child(i))
+        return features
+
+    def retrieve_constants_from_tree(self):
+        """
+        Returns a list of constant symbols that are represented in the tree
+
+        Returns
+        -------
+        list
+          list of constant symbols that are represented in the tree
+        """
+        stack = [self]
+        constants = []
+
+        while len(stack) > 0:
+            curr_node = stack.pop(len(stack) - 1)
+            node_content = curr_node.symb
+            if (isinstance(node_content, str) and re.search(r'^[+-]?\d+(\.\d+)?([Ee][+-]?\d+)?$',
+                                                              node_content)) or isinstance(node_content,
+                                                                                           float) or isinstance(
+                    node_content, int):
+                constants.append(node_content)
+            for i in range(curr_node.arity):
+                stack.append(curr_node.get_child(i))
+        return constants
 
     def get_string_as_tree(self):
         """
