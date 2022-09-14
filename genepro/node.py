@@ -72,6 +72,22 @@ class Node:
         """
         return self.get_output(X)
 
+    def __eq__(self, other: Node) -> bool:
+        """
+        Shorthand for structurally_equal method.
+
+        Parameters
+        ----------
+        other : Node
+          another tree
+
+        Returns
+        -------
+        bool
+          whether the two trees are structurally equal
+        """
+        return self.structurally_equal(other)
+
     def structurally_equal(self, other: Node) -> bool:
         """
         Check if two trees are exactly the same as regards their structure.
@@ -209,7 +225,7 @@ class Node:
         i = -1
         assert (c in self._children)
         for i, oc in enumerate(self._children):
-            if c == oc:
+            if c is oc:
                 self._children.pop(i)
                 c.parent = None
                 c.child_id = -1
