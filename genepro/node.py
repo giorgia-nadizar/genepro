@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import re
-
+import zlib
 import numpy as np
 
 
@@ -87,6 +87,25 @@ class Node:
           whether the two trees are structurally equal
         """
         return self.structurally_equal(other)
+
+    def __hash__(self) -> int:
+        """
+        Hash method for the tree
+
+        Returns
+        -------
+        int
+          hash code of the tree
+        """
+        nodes = [self]
+        molt = 97
+        h = 0
+        while len(nodes) > 0:
+            curr_node = nodes.pop(len(nodes) - 1)
+            h = h * molt + zlib.adler32(bytes(curr_node.symb, "utf-8"))
+            for i in range(curr_node.arity - 1, -1, -1):
+                nodes.append(curr_node.get_child(i))
+        return h
 
     def structurally_equal(self, other: Node) -> bool:
         """

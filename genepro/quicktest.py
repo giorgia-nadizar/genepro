@@ -15,9 +15,12 @@ if __name__ == "__main__":
                                                 genepro.node_impl.Max(), genepro.node_impl.Min()],
                                                [genepro.node_impl.Feature(0), genepro.node_impl.Feature(1),
                                                 genepro.node_impl.Feature(2), genepro.node_impl.Feature(3),
-                                                genepro.node_impl.Constant()],
+                                                genepro.node_impl.Constant(5)],
                                                6)
     b = deepcopy(a)
+    print(a.__hash__())
+    print(b.__hash__())
+    exit()
     print(counts_encode_tree(a, ["+","-","*","/","log","max","min"], 4, 6, 2, True))
     print(a.get_readable_repr())
     print(counts_level_wise_encode_tree(a, ["+","-","*","/","log","max","min"], 4, 6, 2, True))
