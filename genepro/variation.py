@@ -51,7 +51,7 @@ def generate_random_tree(internal_nodes: list, leaf_nodes: list, max_depth: int,
     if ephemeral_func is None:
         leaf_nodes_0 = leaf_nodes
     else:
-        leaf_nodes_0 = leaf_nodes + [Constant(ephemeral_func())]
+        leaf_nodes_0 = leaf_nodes + [Constant(round(ephemeral_func(), 2))]
 
     if curr_depth == max_depth or randu() < prob_leaf:
         n = deepcopy(randc(leaf_nodes_0))
