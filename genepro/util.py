@@ -402,3 +402,42 @@ def __count_n_nacomp(tree: Node, difficult_operators: List[str], count=None):
                 count_args.append(__count_n_nacomp(c, difficult_operators, count))
             count = max(count_args)
         return count
+
+
+def replace_specified_operators_with_mean_value_constants(tree: Node, X: np.ndarray, operators: List[str]) -> Node:
+    """
+    This method generates a new tree starting from the input one. In this new tree, every node whose symbol
+    is specified in the operators list is replaced with a constant containing the mean value of the predictions
+    of that particular node applied to the training data X.
+
+    Parameters
+    ----------
+    tree : Node
+      starting tree
+
+    X : ndarray
+      training data to use to compute the mean values to be used as constants in place of the specified operators
+
+    operators : list
+      list of symbols representing operators to be replaced with constants
+
+    Returns
+    -------
+      Node
+        a new tree
+    """
+    tree = deepcopy(tree)
+    nodes = [(tree, 0, None, -1)]
+    while len(nodes) > 0:
+        curr_node, curr_level, curr_parent, curr_child_id = nodes.pop(0)
+        if curr_node.symb not in operators:
+            for i in range(curr_node.arity):
+                child = curr_node.get_child(i)
+                nodes.append((child, curr_level + 1, child.parent, child.child_id))
+        else:
+            new_node = Constant(round(float(np.mean(curr_node(X))), 2))
+            if curr_parent:
+                curr_parent.replace_child(new_node, curr_child_id)
+            else:
+                tree = new_node
+    return tree
