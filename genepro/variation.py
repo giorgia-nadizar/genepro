@@ -1,3 +1,4 @@
+import random
 from typing import Callable
 
 import numpy as np
@@ -118,29 +119,39 @@ def safe_subtree_crossover_two_children(tree1: Node, tree2: Node, unif_depth: in
     Node
       the trees after crossover
     """
+    tree1_get_height = tree1.get_height()
+    tree2_get_height = tree2.get_height()
     if not isinstance(max_depth, int):
         raise AttributeError(f"Max depth is not an integer: {max_depth}")
     if max_depth < 0:
         raise AttributeError(f"Max depth is negative: {max_depth}")
-    if tree1.get_height() > max_depth:
-        raise ValueError(f"Max depth of offspring is set to be {max_depth} while height of the first tree is {tree1.get_height()}. However, height of the first tree must be at most equal to max depth.")
-    if tree2.get_height() > max_depth:
-        raise ValueError(f"Max depth of offspring is set to be {max_depth} while height of the second tree is {tree2.get_height()}. However, height of the second tree must be at most equal to max depth.")
+    if tree1_get_height > max_depth:
+        raise ValueError(f"Max depth of offspring is set to be {max_depth} while height of the first tree is {tree1_get_height}. However, height of the first tree must be at most equal to max depth.")
+    if tree2_get_height > max_depth:
+        raise ValueError(f"Max depth of offspring is set to be {max_depth} while height of the second tree is {tree2_get_height}. However, height of the second tree must be at most equal to max depth.")
 
     tree1 = deepcopy(tree1)
     tree2 = deepcopy(tree2)
+    if tree1_get_height < tree2_get_height:
+        tree1, tree2 = tree2, tree1
 
     # pick a subtree to replace
     child1 = __sample_node(tree1, unif_depth)
     tree1_mutated_branch_max_depth = max_depth - child1.get_depth()
     child1_height = child1.get_height()
-    exit_loop = False
-    while not(exit_loop):
-        child2 = __sample_node(tree2, unif_depth)
+    tree_nodes2 = [tree2]
+    candidates = []
+    length = 1
+    while length > 0:
+        child2 = tree_nodes2.pop(length - 1)
+        length = length - 1 + child2.arity
         tree2_mutated_branch_max_depth = max_depth - child2.get_depth()
         child2_height = child2.get_height()
         if child2_height <= tree1_mutated_branch_max_depth and child1_height <= tree2_mutated_branch_max_depth:
-            exit_loop = True
+            candidates.append(child2)
+        for iii in range(child2.arity - 1, -1, -1):
+            tree_nodes2.append(child2.get_child(iii))
+    child2 = random.choice(candidates)
 
     # swap
     parent1 = child1.parent
@@ -355,12 +366,13 @@ def subtree_mutation(tree: Node, internal_nodes: list, leaf_nodes: list,
     Node
       the tree after mutation (warning: replace the original tree with the returned one to avoid undefined behavior)
     """
+    tree_get_height = tree.get_height()
     if not isinstance(max_depth, int):
         raise AttributeError(f"Max depth is not an integer: {max_depth}")
     if max_depth < 0:
         raise AttributeError(f"Max depth is negative: {max_depth}")
-    if tree.get_height() > max_depth:
-        raise ValueError(f"Max depth of offspring is set to be {max_depth} while height of the input tree is {tree.get_height()}. However, height of the tree must be at most equal to max depth.")
+    if tree_get_height > max_depth:
+        raise ValueError(f"Max depth of offspring is set to be {max_depth} while height of the input tree is {tree_get_height}. However, height of the tree must be at most equal to max depth.")
     # pick a subtree to replace
     n = __sample_node(tree, unif_depth)
     # generate a random branch
@@ -493,7 +505,7 @@ def __sample_uniform_depth_nodes(nodes: list) -> list:
       list of nodes that share a depth that was sampled uniformly at random
     """
     depths = [n.get_depth() for n in nodes]
-    possible_depths = np.unique(depths)
+    possible_depths = list(set(depths))
     d = randc(possible_depths)
     candidates = [n for i, n in enumerate(nodes) if depths[i] == d]
     return candidates

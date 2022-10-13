@@ -143,8 +143,10 @@ def counts_encode_tree(tree: Node, operators: list, n_features: int, additional_
     properties_dict = {k: 0.0 for k in
                        ["height", "n_nodes", "max_arity", "max_breadth", "n_leaf_nodes", "n_internal_nodes"]}
     levels = {}
-    while len(stack) > 0:
-        curr_node, curr_level = stack.pop(len(stack) - 1)
+    length = 1
+    while length > 0:
+        curr_node, curr_level = stack.pop(length - 1)
+        length = length - 1 + curr_node.arity
         if additional_properties:
             properties_dict["n_nodes"] += 1.0
             curr_depth, curr_arity = curr_level, curr_node.arity
@@ -238,8 +240,10 @@ def counts_level_wise_encode_tree(tree: Node, operators: list, n_features: int, 
     properties_dict = {k: 0.0 for k in
                        ["height", "n_nodes", "max_arity", "max_breadth", "n_leaf_nodes", "n_internal_nodes"]}
     levels = {}
-    while len(stack) > 0:
-        curr_node, curr_level = stack.pop(len(stack) - 1)
+    length = 1
+    while length > 0:
+        curr_node, curr_level = stack.pop(length - 1)
+        length = length - 1 + curr_node.arity
         if additional_properties:
             properties_dict["n_nodes"] += 1.0
             curr_depth, curr_arity = curr_level, curr_node.arity
@@ -369,8 +373,10 @@ def compute_linear_model_discovered_in_math_formula_interpretability_paper(tree:
     if difficult_operators is None:
         difficult_operators = ['**2', '**3', '**', 'sqrt', 'log', 'exp', 'sin', 'cos', 'arcsin', 'arccos', 'tanh', 'sigmoid', 'cotanh', 'arctanh', 'arccotanh', 'sinh', 'cosh', 'arcsinh', 'arccosh', 'tan', 'cotan', 'arctan', 'arccotan']
 
-    while len(stack) > 0:
-        curr_node, curr_level = stack.pop(len(stack) - 1)
+    length = 1
+    while length > 0:
+        curr_node, curr_level = stack.pop(length - 1)
+        length = length - 1 + curr_node.arity
         n_nodes += 1
         node_content = curr_node.symb
         if curr_node.arity > 0:
@@ -428,8 +434,10 @@ def replace_specified_operators_with_mean_value_constants(tree: Node, X: np.ndar
     """
     tree = deepcopy(tree)
     nodes = [(tree, 0, None, -1)]
-    while len(nodes) > 0:
+    length = 1
+    while length > 0:
         curr_node, curr_level, curr_parent, curr_child_id = nodes.pop(0)
+        length = length - 1 + curr_node.arity
         if curr_node.symb not in operators:
             for i in range(curr_node.arity):
                 child = curr_node.get_child(i)

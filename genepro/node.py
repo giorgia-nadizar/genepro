@@ -54,7 +54,7 @@ class Node:
         -------
           length of the subtree rooted at this node
         """
-        return len(self.get_subtree())
+        return self.get_n_nodes()
 
     def __call__(self, X: np.ndarray) -> np.ndarray:
         """
@@ -98,10 +98,12 @@ class Node:
           hash code of the tree
         """
         nodes = [self]
-        molt = 97
+        molt = 31
         h = 0
-        while len(nodes) > 0:
-            curr_node = nodes.pop(len(nodes) - 1)
+        length = 1
+        while length > 0:
+            curr_node = nodes.pop(length - 1)
+            length = length - 1 + curr_node.arity
             h = h * molt + zlib.adler32(bytes(curr_node.symb, "utf-8"))
             for i in range(curr_node.arity - 1, -1, -1):
                 nodes.append(curr_node.get_child(i))
@@ -155,8 +157,15 @@ class Node:
         list
           the subtree (including this node) as a list of descendant nodes in prefix order
         """
-        subtree = list()
-        self.__get_subtree_recursive(subtree)
+        subtree = []
+        nodes = [self]
+        length = 1
+        while length > 0:
+            curr_node = nodes.pop(length - 1)
+            length = length - 1 + curr_node.arity
+            subtree.append(curr_node)
+            for i in range(curr_node.arity - 1, -1, -1):
+                nodes.append(curr_node.get_child(i))
         return subtree
 
     def get_readable_repr(self) -> str:
@@ -294,8 +303,10 @@ class Node:
         """
         nodes = [(self, 0)]
         height = 0
-        while len(nodes) > 0:
-            curr_node, curr_level = nodes.pop(len(nodes) - 1)
+        length = 1
+        while length > 0:
+            curr_node, curr_level = nodes.pop(length - 1)
+            length = length - 1 + curr_node.arity
             height = max(height, curr_level)
             for i in range(curr_node.arity):
                 nodes.append((curr_node.get_child(i), curr_level + 1))
@@ -310,10 +321,16 @@ class Node:
         int
           the amount of nodes in this tree
         """
-        size = 1
-        for child in self._children:
-            size = size + child.get_n_nodes()
-        return size
+        nodes = [self]
+        n_nodes = 0
+        length = 1
+        while length > 0:
+            curr_node = nodes.pop(length - 1)
+            length = length - 1 + curr_node.arity
+            n_nodes += 1
+            for i in range(curr_node.arity):
+                nodes.append(curr_node.get_child(i))
+        return n_nodes
 
     def _get_child_outputs(self, X: np.ndarray) -> list:
         """
@@ -329,7 +346,7 @@ class Node:
         list
           list containing the output of the children, each as a numpy.ndarray
         """
-        c_outs = list()
+        c_outs = []
         for i in range(self.arity):
             c_o = self._children[i].get_output(X)
             c_outs.append(c_o)
@@ -409,7 +426,7 @@ class Node:
         repr : list
           list that is used as container to fill a string with the result of `_get_args_repr` of this node and its descendants
         """
-        args = list()
+        args = []
         for i in range(self.arity):
             self._children[i].__get_readable_repr_recursive(repr)
             args.append(repr[0])
@@ -475,8 +492,10 @@ class Node:
         properties_dict = {k: 0.0 for k in
                            ["height", "n_nodes", "max_arity", "max_breadth", "n_leaf_nodes", "n_internal_nodes"]}
         levels = {}
-        while len(queue) > 0:
+        length = 1
+        while length > 0:
             curr_node = queue.pop(0)
+            length = length - 1 + curr_node.arity
             properties_dict["n_nodes"] += 1.0
             curr_depth, curr_arity = curr_node.get_depth(), curr_node.arity
             if curr_depth > properties_dict["height"]:
@@ -508,9 +527,10 @@ class Node:
         """
         stack = [self]
         operators = []
-        
-        while len(stack) > 0:
-            curr_node = stack.pop(len(stack) - 1)
+        length = 1
+        while length > 0:
+            curr_node = stack.pop(length - 1)
+            length = length - 1 + curr_node.arity
             node_content = curr_node.symb
             if not((isinstance(node_content, str) and re.search(r'^[+-]?\d+(\.\d+)?([Ee][+-]?\d+)?$',
                                                               node_content)) or isinstance(node_content,
@@ -532,9 +552,10 @@ class Node:
         """
         stack = [self]
         features = []
-
-        while len(stack) > 0:
-            curr_node = stack.pop(len(stack) - 1)
+        length = 1
+        while length > 0:
+            curr_node = stack.pop(length - 1)
+            length = length - 1 + curr_node.arity
             node_content = curr_node.symb
             if node_content.startswith("x_"):
                 features.append(node_content)
@@ -553,9 +574,10 @@ class Node:
         """
         stack = [self]
         constants = []
-
-        while len(stack) > 0:
-            curr_node = stack.pop(len(stack) - 1)
+        length = 1
+        while length > 0:
+            curr_node = stack.pop(length - 1)
+            length = length - 1 + curr_node.arity
             node_content = curr_node.symb
             if (isinstance(node_content, str) and re.search(r'^[+-]?\d+(\.\d+)?([Ee][+-]?\d+)?$',
                                                               node_content)) or isinstance(node_content,
@@ -580,8 +602,10 @@ class Node:
         s += "  " * (depth + 1)
         nodes = [(self, 0)]
         subtree = []
-        while len(nodes) > 0:
+        length = 1
+        while length > 0:
             curr_node, curr_level = nodes.pop(0)
+            length = length - 1 + curr_node.arity
             subtree.append((curr_node, curr_level))
             for i in range(curr_node.arity):
                 nodes.append((curr_node.get_child(i), curr_level + 1))
@@ -606,8 +630,10 @@ class Node:
         """
         s = ""
         nodes = [self]
-        while len(nodes) > 0:
-            curr_node = nodes.pop(len(nodes) - 1)
+        length = 1
+        while length > 0:
+            curr_node = nodes.pop(length - 1)
+            length = length - 1 + curr_node.arity
             if isinstance(curr_node, str):
                 s += curr_node + " "
             else:
