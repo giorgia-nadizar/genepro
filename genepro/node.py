@@ -145,7 +145,7 @@ class Node:
         bool
           whether the two trees are semantically equal
         """
-        return np.array_equal(self(X), other(X))
+        return self(X).tolist() == other(X).tolist()
 
     def get_subtree(self) -> list:
         """
@@ -342,7 +342,10 @@ class Node:
         list
           list containing the output of the children, each as a numpy.ndarray
         """
-        return [self._children[i].get_output(X) for i in range(self.arity)]
+        c_outs = []
+        for i in range(self.arity):
+            c_outs.append(self._children[i].get_output(X))
+        return c_outs
 
     def _get_args_repr(self, args: list) -> str:
         """

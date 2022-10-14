@@ -34,10 +34,6 @@ def generate_random_tree(internal_nodes: list, leaf_nodes: list, max_depth: int,
     Node
       the root node of the generated tree
     """
-    if not isinstance(max_depth, int):
-        raise AttributeError(f"Max depth is not an integer: {max_depth}")
-    if not isinstance(curr_depth, int):
-        raise AttributeError(f"Curr depth is not an integer: {curr_depth}")
     if max_depth < 0:
         raise AttributeError(f"Max depth is negative: {max_depth}")
     if curr_depth < 0:
@@ -121,8 +117,6 @@ def safe_subtree_crossover_two_children(tree1: Node, tree2: Node, unif_depth: in
     """
     tree1_get_height = tree1.get_height()
     tree2_get_height = tree2.get_height()
-    if not isinstance(max_depth, int):
-        raise AttributeError(f"Max depth is not an integer: {max_depth}")
     if max_depth < 0:
         raise AttributeError(f"Max depth is negative: {max_depth}")
     if tree1_get_height > max_depth:
@@ -150,7 +144,7 @@ def safe_subtree_crossover_two_children(tree1: Node, tree2: Node, unif_depth: in
         if child2_height <= tree1_mutated_branch_max_depth and child1_height <= tree2_mutated_branch_max_depth:
             candidates.append(child2)
         tree_nodes2.extend([child2.get_child(iii) for iii in range(child2.arity - 1, -1, -1)])
-    child2 = random.choice(candidates)
+    child2 = randc(candidates)
 
     # swap
     parent1 = child1.parent
@@ -366,8 +360,6 @@ def subtree_mutation(tree: Node, internal_nodes: list, leaf_nodes: list,
       the tree after mutation (warning: replace the original tree with the returned one to avoid undefined behavior)
     """
     tree_get_height = tree.get_height()
-    if not isinstance(max_depth, int):
-        raise AttributeError(f"Max depth is not an integer: {max_depth}")
     if max_depth < 0:
         raise AttributeError(f"Max depth is negative: {max_depth}")
     if tree_get_height > max_depth:

@@ -41,7 +41,7 @@ class Times(Node):
 
     def get_output(self, X):
         c_outs = self._get_child_outputs(X)
-        return np.multiply(np.clip(c_outs[0], -1e+100, 1e+100), np.clip(c_outs[1], -1e+100, 1e+100))
+        return np.multiply(np.core.umath.clip(c_outs[0], -1e+100, 1e+100), np.core.umath.clip(c_outs[1], -1e+100, 1e+100))
 
 
 class Div(Node):
@@ -58,7 +58,7 @@ class Div(Node):
         # implements a protection to avoid dividing by 0
         sign_b = np.sign(c_outs[1])
         sign_b = np.where(sign_b == 0, 1, sign_b)
-        protected_div = sign_b * np.clip(c_outs[0], -1e+100, 1e+100) / (np.clip(np.abs(np.clip(c_outs[1], -1e+100, 1e+100)), 1e-9, 1e+100))
+        protected_div = sign_b * np.core.umath.clip(c_outs[0], -1e+100, 1e+100) / (np.core.umath.clip(np.abs(np.core.umath.clip(c_outs[1], -1e+100, 1e+100)), 1e-9, 1e+100))
         return protected_div
 
 
@@ -74,7 +74,7 @@ class Square(Node):
     def get_output(self, X):
         c_outs = self._get_child_outputs(X)
         # Implement protection with clip to avoid overflow encoutered error and avoid getting inf as outputs
-        return np.square(np.clip(c_outs[0], -1.340780792993396e+100, 1.340780792993396e+100))
+        return np.square(np.core.umath.clip(c_outs[0], -1.340780792993396e+100, 1.340780792993396e+100))
 
 
 class Cube(Node):
@@ -89,7 +89,7 @@ class Cube(Node):
     def get_output(self, X):
         c_outs = self._get_child_outputs(X)
         # Implement protection with clip to avoid overflow encoutered error and avoid getting inf as outputs
-        return np.power(np.clip(c_outs[0], -5.643803094119938e+70, 5.643803094119938e+70), 3)
+        return np.power(np.core.umath.clip(c_outs[0], -5.643803094119938e+70, 5.643803094119938e+70), 3)
 
 
 class Sqrt(Node):
@@ -137,7 +137,7 @@ class Exp(Node):
     def get_output(self, X):
         c_outs = self._get_child_outputs(X)
         # Implement protection with clip to avoid overflow encoutered error and avoid getting inf as outputs
-        return np.exp(np.clip(c_outs[0], -700.78, 700.78))
+        return np.exp(np.core.umath.clip(c_outs[0], -700.78, 700.78))
 
 
 class Sin(Node):
@@ -265,8 +265,8 @@ class Power(Node):
         # implements a protection to avoid raising negative values to non-integral values
         base = np.abs(c_outs[0]) + 1e-9
         exponent = c_outs[1]
-        exponent = np.clip(exponent, -30.0, 30.0)
-        base = np.clip(base, -90.0, 90.0)
+        exponent = np.core.umath.clip(exponent, -30.0, 30.0)
+        base = np.core.umath.clip(base, -90.0, 90.0)
         return np.power(base, exponent)
 
 
@@ -282,7 +282,7 @@ class Arcsin(Node):
     def get_output(self, X):
         c_outs = self._get_child_outputs(X)
         # implements a protection to avoid arg out of [-1,1]
-        return np.arcsin(np.clip(c_outs[0], -1, 1))
+        return np.arcsin(np.core.umath.clip(c_outs[0], -1, 1))
 
 
 class Arccos(Node):
@@ -297,7 +297,7 @@ class Arccos(Node):
     def get_output(self, X):
         c_outs = self._get_child_outputs(X)
         # implements a protection to avoid arg out of [-1,1]
-        return np.arccos(np.clip(c_outs[0], -1, 1))
+        return np.arccos(np.core.umath.clip(c_outs[0], -1, 1))
 
 
 class Tanh(Node):

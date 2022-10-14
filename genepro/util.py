@@ -171,10 +171,7 @@ def counts_encode_tree(tree: Node, operators: list, n_features: int, additional_
             else:
                 raise Exception(
                     f"More features than declared. Declared: {n_features}. Feature index found: {feature_index}.")
-        elif (isinstance(node_content, str) and re.search(r'^[+-]?\d+(\.\d+)?([Ee][+-]?\d+)?$',
-                                                          node_content)) or isinstance(node_content,
-                                                                                       float) or isinstance(
-            node_content, int):
+        elif re.search(r'^[+-]?\d+(\.\d+)?([Ee][+-]?\d+)?$', node_content):
             counts[size - 1] += 1.0
         else:
             raise Exception(f"Unexpected node content: {str(node_content)}.")
@@ -268,10 +265,7 @@ def counts_level_wise_encode_tree(tree: Node, operators: list, n_features: int, 
             else:
                 raise Exception(
                     f"More features than declared. Declared: {n_features}. Feature index found: {feature_index}.")
-        elif (isinstance(node_content, str) and re.search(r'^[+-]?\d+(\.\d+)?([Ee][+-]?\d+)?$',
-                                                          node_content)) or isinstance(node_content,
-                                                                                       float) or isinstance(
-                node_content, int):
+        elif re.search(r'^[+-]?\d+(\.\d+)?([Ee][+-]?\d+)?$', node_content):
             counts[start_index + size - 1] += 1.0
         else:
             raise Exception(f"Unexpected node content: {str(node_content)}.")
@@ -333,10 +327,7 @@ def one_hot_encode_tree(tree: Node, operators: list, n_features: int, max_depth:
                 else:
                     raise Exception(
                         f"More features than declared. Declared: {n_features}. Feature index found: {feature_index}.")
-            elif (isinstance(node_content, str) and re.search(r'^[+-]?\d+(\.\d+)?([Ee][+-]?\d+)?$',
-                                                              node_content)) or isinstance(node_content,
-                                                                                           float) or isinstance(
-                    node_content, int):
+            elif re.search(r'^[+-]?\d+(\.\d+)?([Ee][+-]?\d+)?$', node_content):
                 current_encoding[size - 1] = 1.0
             else:
                 raise Exception(f"Unexpected node content: {str(node_content)}.")
