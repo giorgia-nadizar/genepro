@@ -149,8 +149,7 @@ def safe_subtree_crossover_two_children(tree1: Node, tree2: Node, unif_depth: in
         child2_height = child2.get_height()
         if child2_height <= tree1_mutated_branch_max_depth and child1_height <= tree2_mutated_branch_max_depth:
             candidates.append(child2)
-        for iii in range(child2.arity - 1, -1, -1):
-            tree_nodes2.append(child2.get_child(iii))
+        tree_nodes2.extend([child2.get_child(iii) for iii in range(child2.arity - 1, -1, -1)])
     child2 = random.choice(candidates)
 
     # swap
@@ -507,8 +506,7 @@ def __sample_uniform_depth_nodes(nodes: list) -> list:
     depths = [n.get_depth() for n in nodes]
     possible_depths = list(set(depths))
     d = randc(possible_depths)
-    candidates = [n for i, n in enumerate(nodes) if depths[i] == d]
-    return candidates
+    return [n for i, n in enumerate(nodes) if depths[i] == d]
 
 
 def generate_offspring(parent: Node,

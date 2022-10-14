@@ -105,8 +105,7 @@ class Node:
             curr_node = nodes.pop(length - 1)
             length = length - 1 + curr_node.arity
             h = h * molt + zlib.adler32(bytes(curr_node.symb, "utf-8"))
-            for i in range(curr_node.arity - 1, -1, -1):
-                nodes.append(curr_node.get_child(i))
+            nodes.extend([curr_node.get_child(i) for i in range(curr_node.arity - 1, -1, -1)])
         return h
 
     def structurally_equal(self, other: Node) -> bool:
@@ -164,8 +163,7 @@ class Node:
             curr_node = nodes.pop(length - 1)
             length = length - 1 + curr_node.arity
             subtree.append(curr_node)
-            for i in range(curr_node.arity - 1, -1, -1):
-                nodes.append(curr_node.get_child(i))
+            nodes.extend([curr_node.get_child(i) for i in range(curr_node.arity - 1, -1, -1)])
         return subtree
 
     def get_readable_repr(self) -> str:
@@ -308,8 +306,7 @@ class Node:
             curr_node, curr_level = nodes.pop(length - 1)
             length = length - 1 + curr_node.arity
             height = max(height, curr_level)
-            for i in range(curr_node.arity):
-                nodes.append((curr_node.get_child(i), curr_level + 1))
+            nodes.extend([(curr_node.get_child(i), curr_level + 1) for i in range(curr_node.arity)])
         return height
 
     def get_n_nodes(self) -> int:
@@ -328,8 +325,7 @@ class Node:
             curr_node = nodes.pop(length - 1)
             length = length - 1 + curr_node.arity
             n_nodes += 1
-            for i in range(curr_node.arity):
-                nodes.append(curr_node.get_child(i))
+            nodes.extend([curr_node.get_child(i) for i in range(curr_node.arity)])
         return n_nodes
 
     def _get_child_outputs(self, X: np.ndarray) -> list:
@@ -346,11 +342,7 @@ class Node:
         list
           list containing the output of the children, each as a numpy.ndarray
         """
-        c_outs = []
-        for i in range(self.arity):
-            c_o = self._children[i].get_output(X)
-            c_outs.append(c_o)
-        return c_outs
+        return [self._children[i].get_output(X) for i in range(self.arity)]
 
     def _get_args_repr(self, args: list) -> str:
         """
