@@ -105,7 +105,8 @@ class Node:
             curr_node = nodes.pop(length - 1)
             length = length - 1 + curr_node.arity
             h = h * molt + zlib.adler32(bytes(curr_node.symb, "utf-8"))
-            nodes.extend([curr_node.get_child(i) for i in range(curr_node.arity - 1, -1, -1)])
+            for i in range(curr_node.arity - 1, -1, -1):
+                nodes.append(curr_node.get_child(i))
         return h
 
     def structurally_equal(self, other: Node) -> bool:
@@ -157,13 +158,7 @@ class Node:
           the subtree (including this node) as a list of descendant nodes in prefix order
         """
         subtree = []
-        nodes = [self]
-        length = 1
-        while length > 0:
-            curr_node = nodes.pop(length - 1)
-            length = length - 1 + curr_node.arity
-            subtree.append(curr_node)
-            nodes.extend([curr_node.get_child(i) for i in range(curr_node.arity - 1, -1, -1)])
+        self.__get_subtree_recursive(subtree)
         return subtree
 
     def get_readable_repr(self) -> str:
@@ -299,15 +294,12 @@ class Node:
         int
           the height of this node
         """
-        nodes = [(self, 0)]
-        height = 0
-        length = 1
-        while length > 0:
-            curr_node, curr_level = nodes.pop(length - 1)
-            length = length - 1 + curr_node.arity
-            height = max(height, curr_level)
-            nodes.extend([(curr_node.get_child(i), curr_level + 1) for i in range(curr_node.arity)])
-        return height
+        if self.arity == 0:
+            return 0
+        a = []
+        for c in self._children:
+            a.append(c.get_height())
+        return 1 + max(a)
 
     def get_n_nodes(self) -> int:
         """
@@ -318,15 +310,12 @@ class Node:
         int
           the amount of nodes in this tree
         """
-        nodes = [self]
-        n_nodes = 0
-        length = 1
-        while length > 0:
-            curr_node = nodes.pop(length - 1)
-            length = length - 1 + curr_node.arity
-            n_nodes += 1
-            nodes.extend([curr_node.get_child(i) for i in range(curr_node.arity)])
-        return n_nodes
+        if self.arity == 0:
+            return 1
+        a = []
+        for c in self._children:
+            a.append(c.get_n_nodes())
+        return 1 + sum(a)
 
     def _get_child_outputs(self, X: np.ndarray) -> list:
         """

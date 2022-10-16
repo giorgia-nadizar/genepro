@@ -175,7 +175,8 @@ def counts_encode_tree(tree: Node, operators: list, n_features: int, additional_
             counts[size - 1] += 1.0
         else:
             raise Exception(f"Unexpected node content: {str(node_content)}.")
-        stack.extend([(curr_node.get_child(child_index), curr_level + 1) for child_index in range(curr_node.arity - 1, -1, -1)])
+        for child_index in range(curr_node.arity - 1, -1, -1):
+            stack.append((curr_node.get_child(child_index), curr_level + 1))
 
     if additional_properties:
         for l in levels:
@@ -269,7 +270,8 @@ def counts_level_wise_encode_tree(tree: Node, operators: list, n_features: int, 
             counts[start_index + size - 1] += 1.0
         else:
             raise Exception(f"Unexpected node content: {str(node_content)}.")
-        stack.extend([(curr_node.get_child(child_index), curr_level + 1) for child_index in range(curr_node.arity - 1, -1, -1)])
+        for child_index in range(curr_node.arity - 1, -1, -1):
+            stack.append((curr_node.get_child(child_index), curr_level + 1))
 
     if additional_properties:
         for l in levels:
@@ -372,7 +374,8 @@ def compute_linear_model_discovered_in_math_formula_interpretability_paper(tree:
             n_operations += 1
             if node_content in difficult_operators:
                 n_non_arithmetic_operations += 1
-        stack.extend([(curr_node.get_child(child_index), curr_level + 1) for child_index in range(curr_node.arity - 1, -1, -1)])
+        for child_index in range(curr_node.arity - 1, -1, -1):
+            stack.append((curr_node.get_child(child_index), curr_level + 1))
 
     n_consecutive_non_arithmetic_operations = __count_n_nacomp(tree, difficult_operators, None)
 

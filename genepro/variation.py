@@ -1,5 +1,5 @@
 import random
-from typing import Callable
+from typing import Callable, List
 
 import numpy as np
 from numpy.random import random as randu
@@ -133,17 +133,8 @@ def safe_subtree_crossover_two_children(tree1: Node, tree2: Node, unif_depth: in
     child1 = __sample_node(tree1, unif_depth)
     tree1_mutated_branch_max_depth = max_depth - child1.get_depth()
     child1_height = child1.get_height()
-    tree_nodes2 = [tree2]
     candidates = []
-    length = 1
-    while length > 0:
-        child2 = tree_nodes2.pop(length - 1)
-        length = length - 1 + child2.arity
-        tree2_mutated_branch_max_depth = max_depth - child2.get_depth()
-        child2_height = child2.get_height()
-        if child2_height <= tree1_mutated_branch_max_depth and child1_height <= tree2_mutated_branch_max_depth:
-            candidates.append(child2)
-        tree_nodes2.extend([child2.get_child(iii) for iii in range(child2.arity - 1, -1, -1)])
+    __find_cuts_subtree_crossover_two_children(tree2, max_depth, tree1_mutated_branch_max_depth, child1_height, candidates)
     child2 = randc(candidates)
 
     # swap
@@ -168,6 +159,15 @@ def safe_subtree_crossover_two_children(tree1: Node, tree2: Node, unif_depth: in
         tree2 = new_child1
 
     return tree1, tree2
+
+
+def __find_cuts_subtree_crossover_two_children(tree: Node, max_depth: int, tree1_mutated_branch_max_depth: int, child1_height: int, candidates: List[Node]) -> None:
+    tree2_mutated_branch_max_depth = max_depth - tree.get_depth()
+    child2_height = tree.get_height()
+    if child2_height <= tree1_mutated_branch_max_depth and child1_height <= tree2_mutated_branch_max_depth:
+        candidates.append(tree)
+    for i in range(tree.arity):
+        __find_cuts_subtree_crossover_two_children(tree.get_child(i), max_depth, tree1_mutated_branch_max_depth, child1_height, candidates)
 
 
 def node_level_crossover(tree: Node, donor: Node, same_depth: bool = False, prob_swap: float = 0.1) -> Node:
