@@ -97,16 +97,14 @@ class Node:
         int
           hash code of the tree
         """
-        nodes = [self]
         molt = 31
         h = 0
-        length = 1
-        while length > 0:
-            curr_node = nodes.pop(length - 1)
-            length = length - 1 + curr_node.arity
-            h = h * molt + zlib.adler32(bytes(curr_node.symb, "utf-8"))
-            for i in range(curr_node.arity - 1, -1, -1):
-                nodes.append(curr_node.get_child(i))
+        return self.__hash_recursive(h, molt)
+
+    def __hash_recursive(self, h: int, molt: int) -> int:
+        h = h * molt + zlib.adler32(bytes(self.symb, "utf-8"))
+        for c in self._children:
+            h = c.__hash_recursive(h, molt)
         return h
 
     def structurally_equal(self, other: Node) -> bool:

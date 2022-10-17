@@ -1,6 +1,6 @@
 import inspect
 from copy import deepcopy
-from typing import List
+from typing import List, Dict
 
 import numpy as np
 import re
@@ -137,47 +137,17 @@ def counts_encode_tree(tree: Node, operators: list, n_features: int, additional_
         the counts encoded tree
     """
     size = len(operators) + n_features + 1
-    counts = [0.0] * size
+    if additional_properties:
+        counts = [0.0] * (size + 3)
+    else:
+        counts = [0.0] * size
 
-    stack = [(tree, 0)]
     properties_dict = {k: 0.0 for k in
                        ["height", "n_nodes", "max_arity", "max_breadth", "n_leaf_nodes", "n_internal_nodes"]}
     levels = {}
-    length = 1
-    while length > 0:
-        curr_node, curr_level = stack.pop(length - 1)
-        length = length - 1 + curr_node.arity
-        if additional_properties:
-            properties_dict["n_nodes"] += 1.0
-            curr_depth, curr_arity = curr_level, curr_node.arity
-            if curr_depth > properties_dict["height"]:
-                properties_dict["height"] = curr_depth
-            if curr_arity > properties_dict["max_arity"]:
-                properties_dict["max_arity"] = curr_arity
-            if curr_arity == 0:
-                properties_dict["n_leaf_nodes"] += 1.0
-            else:
-                properties_dict["n_internal_nodes"] += 1.0
-            if curr_depth not in levels:
-                levels[curr_depth] = 0.0
-            levels[curr_depth] += 1.0
-        node_content = curr_node.symb
-        if node_content in operators:
-            counts[operators.index(node_content)] += 1.0
-        elif node_content.startswith("x_"):
-            feature_index = int(node_content[2:])
-            if feature_index < n_features:
-                counts[len(operators) + feature_index] += 1.0
-            else:
-                raise Exception(
-                    f"More features than declared. Declared: {n_features}. Feature index found: {feature_index}.")
-        elif re.search(r'^[+-]?\d+(\.\d+)?([Ee][+-]?\d+)?$', node_content):
-            counts[size - 1] += 1.0
-        else:
-            raise Exception(f"Unexpected node content: {str(node_content)}.")
-        for child_index in range(curr_node.arity - 1, -1, -1):
-            stack.append((curr_node.get_child(child_index), curr_level + 1))
 
+    __counts_encode_tree_recursive(tree, 0, size, operators, n_features, properties_dict,
+                                   levels, counts, additional_properties)
     if additional_properties:
         for l in levels:
             if levels[l] > properties_dict["max_breadth"]:
@@ -185,9 +155,44 @@ def counts_encode_tree(tree: Node, operators: list, n_features: int, additional_
         height_n_nodes_ratio = (properties_dict["height"] + 1.0) / float(properties_dict["n_nodes"])
         max_arity_breadth_ratio = properties_dict["max_arity"] / float(properties_dict["max_breadth"])
         leaf_nodes_ratio = properties_dict["n_leaf_nodes"] / float(properties_dict["n_nodes"])
-        counts = counts + [height_n_nodes_ratio, max_arity_breadth_ratio, leaf_nodes_ratio]
+        counts[size] = height_n_nodes_ratio
+        counts[size + 1] = max_arity_breadth_ratio
+        counts[size + 2] = leaf_nodes_ratio
 
     return counts
+
+
+def __counts_encode_tree_recursive(tree: Node, depth: int, size: int, operators: List, n_features: int, properties_dict: Dict, levels: Dict, counts: List, additional_properties: bool = True):
+    if additional_properties:
+        properties_dict["n_nodes"] += 1.0
+        curr_depth, curr_arity = depth, tree.arity
+        if curr_depth > properties_dict["height"]:
+            properties_dict["height"] = curr_depth
+        if curr_arity > properties_dict["max_arity"]:
+            properties_dict["max_arity"] = curr_arity
+        if curr_arity == 0:
+            properties_dict["n_leaf_nodes"] += 1.0
+        else:
+            properties_dict["n_internal_nodes"] += 1.0
+        if curr_depth not in levels:
+            levels[curr_depth] = 0.0
+        levels[curr_depth] += 1.0
+    node_content = tree.symb
+    if node_content in operators:
+        counts[operators.index(node_content)] += 1.0
+    elif node_content.startswith("x_"):
+        feature_index = int(node_content[2:])
+        if feature_index < n_features:
+            counts[len(operators) + feature_index] += 1.0
+        else:
+            raise Exception(
+                f"More features than declared. Declared: {n_features}. Feature index found: {feature_index}.")
+    elif re.search(r'^[+-]?\d+(\.\d+)?([Ee][+-]?\d+)?$', node_content):
+        counts[size - 1] += 1.0
+    else:
+        raise Exception(f"Unexpected node content: {str(node_content)}.")
+    for child_index in range(tree.arity):
+        __counts_encode_tree_recursive(tree.get_child(child_index), depth + 1, size, operators, n_features, properties_dict, levels, counts, additional_properties)
 
 
 def counts_level_wise_encode_tree(tree: Node, operators: list, n_features: int, max_depth: int,
@@ -356,47 +361,35 @@ def compute_linear_model_discovered_in_math_formula_interpretability_paper(tree:
       float
         the interpretability of the tree, the higher, the better
     """
-    stack = [(tree, 0)]
-    n_nodes = 0
-    n_operations = 0
-    n_non_arithmetic_operations = 0
-
     if difficult_operators is None:
-        difficult_operators = ['**2', '**3', '**', 'sqrt', 'log', 'exp', 'sin', 'cos', 'arcsin', 'arccos', 'tanh', 'sigmoid', 'cotanh', 'arctanh', 'arccotanh', 'sinh', 'cosh', 'arcsinh', 'arccosh', 'tan', 'cotan', 'arctan', 'arccotan']
-
-    length = 1
-    while length > 0:
-        curr_node, curr_level = stack.pop(length - 1)
-        length = length - 1 + curr_node.arity
-        n_nodes += 1
-        node_content = curr_node.symb
-        if curr_node.arity > 0:
-            n_operations += 1
-            if node_content in difficult_operators:
-                n_non_arithmetic_operations += 1
-        for child_index in range(curr_node.arity - 1, -1, -1):
-            stack.append((curr_node.get_child(child_index), curr_level + 1))
-
-    n_consecutive_non_arithmetic_operations = __count_n_nacomp(tree, difficult_operators, None)
-
+        difficult_operators = ['**2', '**3', '**', 'sqrt', 'log', 'exp', 'sin', 'cos', 'arcsin', 'arccos', 'tanh',
+                               'sigmoid', 'cotanh', 'arctanh', 'arccotanh', 'sinh', 'cosh', 'arcsinh', 'arccosh', 'tan',
+                               'cotan', 'arctan', 'arccotan']
+    d = {"n_nodes": 0, "n_op": 0, "n_nop": 0}
+    n_consecutive_non_arithmetic_operations = __count_linear_model_features(tree, difficult_operators, d)
+    n_nodes, n_operations, n_non_arithmetic_operations = d["n_nodes"], d["n_op"], d["n_nop"]
     return 79.1 - 0.2*n_nodes - 0.5*n_operations - 3.4*n_non_arithmetic_operations - 4.5*n_consecutive_non_arithmetic_operations
 
 
-def __count_n_nacomp(tree: Node, difficult_operators: List[str], count=None):
+def __count_linear_model_features(tree: Node, difficult_operators: List[str], d, count=None):
     if count is None:
         count = 0
+    d["n_nodes"] += 1
     if tree.symb in difficult_operators:
         count += 1
+        d["n_nop"] += 1
+        d["n_op"] += 1
         count_args = []
         for c in tree._children:
-            count_args.append(__count_n_nacomp(c, difficult_operators, count))
+            count_args.append(__count_linear_model_features(c, difficult_operators, d, count))
         count = max(count_args)
         return count
     else:
         if tree.arity > 0:
+            d["n_op"] += 1
             count_args = []
             for c in tree._children:
-                count_args.append(__count_n_nacomp(c, difficult_operators, count))
+                count_args.append(__count_linear_model_features(c, difficult_operators, d, count))
             count = max(count_args)
         return count
 

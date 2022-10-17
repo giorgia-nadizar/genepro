@@ -2,11 +2,13 @@ from genepro.util import counts_encode_tree, counts_level_wise_encode_tree
 import numpy as np
 import genepro.variation
 import genepro
-
+import random
 from copy import deepcopy
+import time
 
 if __name__ == "__main__":
-
+    random.seed(1)
+    np.random.seed(1)
     a = genepro.variation.generate_random_tree([genepro.node_impl.Plus(),
                                                 genepro.node_impl.Minus(),
                                                 genepro.node_impl.Times(),
@@ -20,8 +22,13 @@ if __name__ == "__main__":
     b = deepcopy(a)
     print(a.__hash__())
     print(b.__hash__())
-    exit()
-    print(counts_encode_tree(a, ["+","-","*","/","log","max","min"], 4, 6, 2, True))
+    st = time.time()
+    for _ in range(10 ** 6):
+        c = counts_encode_tree(a, ["+","-","*","/","log","max","min"], 6, True)
+    en = time.time()
+    print(c)
+    print((en - st)*(1/3600)*60)
+    exit(1)
     print(a.get_readable_repr())
     print(counts_level_wise_encode_tree(a, ["+","-","*","/","log","max","min"], 4, 6, 2, True))
     print(a == b)
