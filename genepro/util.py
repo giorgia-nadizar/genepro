@@ -362,8 +362,10 @@ def compute_linear_model_discovered_in_math_formula_interpretability_paper(tree:
         the interpretability of the tree, the higher, the better
     """
     if difficult_operators is None:
-        difficult_operators = ['**2', '**3', '**', 'sqrt', 'log', 'exp', 'sin', 'cos', 'arcsin', 'arccos', 'tanh',
-                               'sigmoid', 'cotanh', 'arctanh', 'arccotanh', 'sinh', 'cosh', 'arcsinh', 'arccosh', 'tan',
+        difficult_operators = ['**2', '**3', '**', 'sqrt', 'log', 'exp', 'sin', 'cos',
+                               'max', 'min', 'arcsin', 'arccos', 'tanh',
+                               'sigmoid', 'cotanh', 'arctanh', 'arccotanh',
+                               'sinh', 'cosh', 'arcsinh', 'arccosh', 'tan',
                                'cotan', 'arctan', 'arccotan']
     d = {"n_nodes": 0, "n_op": 0, "n_nop": 0}
     n_consecutive_non_arithmetic_operations = __count_linear_model_features(tree, difficult_operators, d)
