@@ -12,7 +12,7 @@ from genepro.node import Node
 from genepro.node_impl import Constant
 
 
-def generate_random_tree(internal_nodes: list, leaf_nodes: list, max_depth: int, curr_depth: int = 0, ephemeral_func: Callable = None):
+def generate_random_tree(internal_nodes: list, leaf_nodes: list, max_depth: int, curr_depth: int = 0, ephemeral_func: Callable = None, p: List[float] = None):
     """
     Recursive method to generate a random tree containing the given types of nodes and up to the given maximum depth
 
@@ -28,6 +28,8 @@ def generate_random_tree(internal_nodes: list, leaf_nodes: list, max_depth: int,
       the current depth of the tree under construction, it is set by default to 0 so that calls to `generate_random_tree` need not specify it
     ephemeral_func: Callable
       lambda expression with no parameters that generates a potentially different random constant every time this method is called, default is None, meaning that no ephemeral constant is generated
+    p : list
+      probability distribution over internal nodes. Default is None, meaning uniform distribution.
 
     Returns
     -------
@@ -53,10 +55,10 @@ def generate_random_tree(internal_nodes: list, leaf_nodes: list, max_depth: int,
     if curr_depth == max_depth or randu() < prob_leaf:
         n = deepcopy(randc(leaf_nodes_0))
     else:
-        n = deepcopy(randc(internal_nodes))
+        n = deepcopy(randc(internal_nodes, p=p))
 
     for _ in range(n.arity):
-        c = generate_random_tree(internal_nodes, leaf_nodes, max_depth, curr_depth + 1, ephemeral_func)
+        c = generate_random_tree(internal_nodes, leaf_nodes, max_depth, curr_depth + 1, ephemeral_func, p)
         n.insert_child(c)
 
     return n
@@ -335,7 +337,7 @@ def safe_node_level_crossover_two_children(tree1: Node, tree2: Node, same_depth:
 
 
 def subtree_mutation(tree: Node, internal_nodes: list, leaf_nodes: list,
-                     unif_depth: bool = True, max_depth: int = 4, ephemeral_func: Callable = None) -> Node:
+                     unif_depth: bool = True, max_depth: int = 4, ephemeral_func: Callable = None, p: List[float] = None) -> Node:
     """
     Performs subtree mutation and returns the resulting offspring
 
@@ -353,6 +355,8 @@ def subtree_mutation(tree: Node, internal_nodes: list, leaf_nodes: list,
       the maximal depth of the offspring (default is 4)
     ephemeral_func: Callable
       lambda expression with no parameters that generates a potentially different random constant every time this method is called, default is None, meaning that no ephemeral constant is generated
+    p : list
+      probability distribution over internal nodes. Default is None, meaning uniform distribution.
 
     Returns
     -------
@@ -368,7 +372,8 @@ def subtree_mutation(tree: Node, internal_nodes: list, leaf_nodes: list,
     n = __sample_node(tree, unif_depth)
     # generate a random branch
     branch = generate_random_tree(internal_nodes=internal_nodes, leaf_nodes=leaf_nodes,
-                                  max_depth=max_depth - n.get_depth(), curr_depth=0, ephemeral_func=ephemeral_func)
+                                  max_depth=max_depth - n.get_depth(), curr_depth=0, ephemeral_func=ephemeral_func,
+                                  p=p)
     # swap
     p = n.parent
     if p:
@@ -379,7 +384,7 @@ def subtree_mutation(tree: Node, internal_nodes: list, leaf_nodes: list,
 
 
 def safe_subtree_mutation(tree: Node, internal_nodes: list, leaf_nodes: list,
-                          unif_depth: bool = True, max_depth: int = 4, ephemeral_func: Callable = None) -> Node:
+                          unif_depth: bool = True, max_depth: int = 4, ephemeral_func: Callable = None, p: List[float] = None) -> Node:
     """
     Performs subtree mutation and returns the resulting offspring.
     Differs from subtree mutation as it is not done in place.
@@ -398,13 +403,15 @@ def safe_subtree_mutation(tree: Node, internal_nodes: list, leaf_nodes: list,
       the maximal depth of the offspring (default is 4)
     ephemeral_func: Callable
       lambda expression with no parameters that generates a potentially different random constant every time this method is called, default is None, meaning that no ephemeral constant is generated
+    p : list
+      probability distribution over internal nodes. Default is None, meaning uniform distribution.
 
     Returns
     -------
     Node
       the tree after mutation (warning: replace the original tree with the returned one to avoid undefined behavior)
     """
-    return subtree_mutation(deepcopy(tree), internal_nodes, leaf_nodes, unif_depth=unif_depth, max_depth=max_depth, ephemeral_func=ephemeral_func)
+    return subtree_mutation(deepcopy(tree), internal_nodes, leaf_nodes, unif_depth=unif_depth, max_depth=max_depth, ephemeral_func=ephemeral_func, p=p)
 
 
 def coeff_mutation(tree: Node, prob_coeff_mut: float = 0.25, temp: float = 0.25) -> Node:
