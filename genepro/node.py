@@ -2,6 +2,8 @@ from __future__ import annotations
 
 import re
 import zlib
+from typing import List
+
 import numpy as np
 
 
@@ -501,7 +503,7 @@ class Node:
                 properties_dict["max_breadth"] = levels[l]
         return properties_dict
 
-    def retrieve_operators_from_tree(self):
+    def retrieve_operators_from_tree(self) -> List[str]:
         """
         Returns a list of operator symbols that are represented in the tree
 
@@ -526,7 +528,7 @@ class Node:
                 stack.append(curr_node.get_child(i))
         return operators
 
-    def retrieve_features_from_tree(self):
+    def retrieve_features_from_tree(self) -> List[str]:
         """
         Returns a list of feature symbols that are represented in the tree
 
@@ -548,7 +550,7 @@ class Node:
                 stack.append(curr_node.get_child(i))
         return features
 
-    def retrieve_constants_from_tree(self):
+    def retrieve_constants_from_tree(self) -> List[str]:
         """
         Returns a list of constant symbols that are represented in the tree
 
@@ -573,7 +575,7 @@ class Node:
                 stack.append(curr_node.get_child(i))
         return constants
 
-    def get_string_as_tree(self):
+    def get_string_as_tree(self) -> str:
         """
         Returns a string representation of tree in the form of a tree with square brackets around nodes
 
@@ -604,7 +606,7 @@ class Node:
             s += "  [" + curr_node.symb + "] "
         return s
 
-    def get_string_as_lisp_expr(self):
+    def get_string_as_lisp_expr(self) -> str:
         """
         Returns a string representation of tree in the form of a lisp expression
 
@@ -615,10 +617,8 @@ class Node:
         """
         s = ""
         nodes = [self]
-        length = 1
-        while length > 0:
-            curr_node = nodes.pop(length - 1)
-            length = length - 1 + curr_node.arity
+        while len(nodes) > 0:
+            curr_node = nodes.pop(len(nodes) - 1)
             if isinstance(curr_node, str):
                 s += curr_node + " "
             else:

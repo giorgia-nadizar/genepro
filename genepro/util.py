@@ -396,6 +396,41 @@ def __count_linear_model_features(tree: Node, difficult_operators: List[str], d,
         return count
 
 
+def concatenate_nodes_with_binary_operator(forest: List[Node], binary_operator: Node, copy_tree: bool = False) -> Node:
+    """
+    This method generates a new tree starting from input forest (list of trees). The new tree is generated
+    by concatenating the trees in the forest with the specified binary operator.
+
+    Parameters
+    ----------
+    forest : list
+      list of trees to concatenate
+
+    binary_operator : Node
+      binary operator to use for concatenating the trees in the forest
+
+    copy_tree : bool
+      specify if you want to perform deepcopy of each tree in the forest when building the concatenated tree
+
+    Returns
+    -------
+      Node
+        a new tree
+    """
+    if binary_operator.arity != 2:
+        raise AttributeError(f"The arity of the specified binary operator is {binary_operator.arity} instead of 2.")
+    if len(forest) < 2:
+        raise AttributeError(f"Forest (list of nodes to concatenate) must have at least two trees. Here we have only {len(forest)} trees.")
+    c: Node = deepcopy(binary_operator)
+    if len(forest) == 2:
+        c.insert_child(deepcopy(forest[0]) if copy_tree else forest[0])
+        c.insert_child(deepcopy(forest[1]) if copy_tree else forest[1])
+        return c
+    c.insert_child(deepcopy(forest[0]) if copy_tree else forest[0])
+    c.insert_child(concatenate_nodes_with_binary_operator(forest[1:], binary_operator, copy_tree))
+    return c
+
+
 def replace_specified_operators_with_mean_value_constants(tree: Node, X: np.ndarray, operators: List[str]) -> Node:
     """
     This method generates a new tree starting from the input one. In this new tree, every node whose symbol

@@ -196,6 +196,52 @@ class Min(Node):
         return np.where(c_outs[0] < c_outs[1], c_outs[0], c_outs[1])
 
 
+class And(Node):
+    def __init__(self):
+        super(And, self).__init__()
+        self.arity = 2
+        self.symb = "and"
+
+    def _get_args_repr(self, args):
+        return self._get_typical_repr(args, "between")
+
+    def get_output(self, X):
+        c_outs = self._get_child_outputs(X)
+        return np.where(np.logical_or(c_outs[0] == 0, c_outs[1] == 0), 0, 1)
+
+
+class Or(Node):
+    def __init__(self):
+        super(Or, self).__init__()
+        self.arity = 2
+        self.symb = "or"
+
+    def _get_args_repr(self, args):
+        return self._get_typical_repr(args, "between")
+
+    def get_output(self, X):
+        c_outs = self._get_child_outputs(X)
+        return np.where(np.logical_and(c_outs[0] == 0, c_outs[1] == 0), 0, 1)
+
+
+class Xor(Node):
+    def __init__(self):
+        super(Xor, self).__init__()
+        self.arity = 2
+        self.symb = "xor"
+
+    def _get_args_repr(self, args):
+        return self._get_typical_repr(args, "between")
+
+    def get_output(self, X):
+        c_outs = self._get_child_outputs(X)
+        return np.where(
+            np.logical_or(
+                np.logical_and(c_outs[0] == 0, c_outs[1] != 0),
+                np.logical_and(c_outs[0] != 0, c_outs[1] == 0)
+            ), 1, 0)
+
+
 class IfThenElse(Node):
     def __init__(self):
         super(IfThenElse, self).__init__()
@@ -326,3 +372,17 @@ class UnaryMinus(Node):
     def get_output(self, X):
         c_outs = self._get_child_outputs(X)
         return -1 * c_outs[0]
+
+
+class Not(Node):
+    def __init__(self):
+        super(Not, self).__init__()
+        self.arity = 1
+        self.symb = "not"
+
+    def _get_args_repr(self, args):
+        return self._get_typical_repr(args, 'before')
+
+    def get_output(self, X):
+        c_outs = self._get_child_outputs(X)
+        return np.where(c_outs[0] == 0, 1, 0)
