@@ -62,6 +62,22 @@ class Div(Node):
         return protected_div
 
 
+class Mod(Node):
+    def __init__(self):
+        super(Mod, self).__init__()
+        self.arity = 2
+        self.symb = '%'
+
+    def _get_args_repr(self, args):
+        return self._get_typical_repr(args, 'between')
+
+    def get_output(self, X):
+        c_outs = self._get_child_outputs(X)
+        # implements a protection to avoid dividing by 0
+        c_outs[1] = np.where(c_outs[1] == 0, c_outs[0], c_outs[1])
+        return np.core.umath.clip(c_outs[0], -1e+100, 1e+100) % np.core.umath.clip(c_outs[1], -1e+100, 1e+100)
+
+
 class Square(Node):
     def __init__(self):
         super(Square, self).__init__()
@@ -386,3 +402,31 @@ class Not(Node):
     def get_output(self, X):
         c_outs = self._get_child_outputs(X)
         return np.where(c_outs[0] == 0, 1, 0)
+
+
+class Even(Node):
+    def __init__(self):
+        super(Even, self).__init__()
+        self.arity = 1
+        self.symb = "even"
+
+    def _get_args_repr(self, args):
+        return self._get_typical_repr(args, 'before')
+
+    def get_output(self, X):
+        c_outs = self._get_child_outputs(X)
+        return np.where(c_outs[0] % 2 == 0, 1, 0)
+
+
+class Odd(Node):
+    def __init__(self):
+        super(Odd, self).__init__()
+        self.arity = 1
+        self.symb = "odd"
+
+    def _get_args_repr(self, args):
+        return self._get_typical_repr(args, 'before')
+
+    def get_output(self, X):
+        c_outs = self._get_child_outputs(X)
+        return np.where(c_outs[0] % 2 != 0, 1, 0)
