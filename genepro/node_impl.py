@@ -74,8 +74,10 @@ class Mod(Node):
     def get_output(self, X):
         c_outs = self._get_child_outputs(X)
         # implements a protection to avoid dividing by 0
-        c_outs[1] = np.where(c_outs[1] == 0, c_outs[0], c_outs[1])
-        return np.core.umath.clip(c_outs[0], -1e+100, 1e+100) % np.core.umath.clip(c_outs[1], -1e+100, 1e+100)
+        sign_b = np.sign(c_outs[1])
+        sign_b = np.where(sign_b == 0, 1, sign_b)
+        protected_div = sign_b * np.core.umath.clip(c_outs[0], -1e+100, 1e+100) % ( np.core.umath.clip(np.abs(np.core.umath.clip(c_outs[1], -1e+100, 1e+100)), 1e-9, 1e+100))
+        return protected_div
 
 
 class Square(Node):
