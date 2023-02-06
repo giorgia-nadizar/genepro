@@ -15,7 +15,7 @@ This library includes a classifier and regressor that are compatible with scitik
 
 Evolving programs are represented as trees.
 The leaf nodes (also called *terminals*) of such trees represent some form of input, e.g., a feature for classification or regression, or a type of environmental observation for reinforcement learning.
-The internal ndoes represent possible atomic instructions, e.g., summation, subtraction, multiplication, division, but also if-then-else or similar programming constructs.
+The internal nodes represent possible atomic instructions, e.g., summation, subtraction, multiplication, division, but also if-then-else or similar programming constructs.
 
 Genetic programming operates on a population of trees, typically initialized at random. 
 Every iteration (called *generation*), promising trees undergo random modifications (e.g., forms of *crossover*, *mutation*, and *tuning*) that result in a population of offspring trees.
@@ -31,9 +31,9 @@ Example of 1D symbolic regression (made with <a href="https://gist.github.com/ma
 </figure>
 
 ## Installation
-To run, `genepro` relies only on a few libraries to run (`numpy`, `joblib`, and `scikit-learn`).
-However, additional libraries (e.g., `gym`) are required to run some examples.
-You can choose to perform a minimal or full installation.
+For classification or regression, `genepro` relies only on a few libraries (`numpy`, `joblib`, and `scikit-learn`).
+However, additional libraries (e.g., `gym`) are required to run the reinforcement learning example.
+Thus, you can choose to perform a minimal or full installation.
 
 ### Minimal installation
 To perform a minimal installation, run:
@@ -97,10 +97,10 @@ If you use this software, please cite it with:
 ```
 @software{Virgolin_genepro_2022,
   author = {Virgolin, Marco},
-  month = {3},
+  month = {9},
   title = {{genepro}},
   url = {https://github.com/marcovirgolin/genepro},
-  version = {0.0.8},
+  version = {0.1.0},
   year = {2022}
 }
 ```
