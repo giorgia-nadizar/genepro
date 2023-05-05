@@ -10,7 +10,7 @@ from numpy.random import shuffle
 from copy import deepcopy
 
 from genepro.node import Node
-from genepro.node_impl import Constant
+from genepro.node_impl import Constant, Minus, Plus, Mul, Sigmoid, Pointer, Times
 
 
 def generate_random_tree(internal_nodes: list, leaf_nodes: list, max_depth: int, curr_depth: int = 0, ephemeral_func: Callable = None, p: List[float] = None):
@@ -219,6 +219,53 @@ def __find_cuts_subtree_crossover_two_children(tree: Node, max_depth: int, tree1
         candidates.append(tree)
     for i in range(tree.arity):
         __find_cuts_subtree_crossover_two_children(tree.get_child(i), max_depth, tree1_mutated_branch_max_depth, child1_height, candidates)
+
+
+def geometric_semantic_single_tree_crossover(tree1: Node, tree2: Node, internal_nodes: list[Node], leaf_nodes: list[Node], max_depth: int = 4, ephemeral_func: Callable = None, p: List[float] = None) -> Node:
+    """
+    Performs geometric semantic crossover and returns the resulting offspring without changing the original trees
+
+    Parameters
+    ----------
+    tree1 : Node
+      the first tree participating in the crossover
+    tree2 : Node
+      the second tree participating in the crossover
+    internal_nodes : list
+      list of possible internal nodes to generate the random tree
+    leaf_nodes : list
+      list of possible leaf nodes to generate the random tree
+    max_depth : int, optional
+      the maximal depth of the generated random tree (default is 4)
+    ephemeral_func: Callable
+      lambda expression with no parameters that generates a potentially different random constant every time this method is called, default is None, meaning that no ephemeral constant is generated
+    p : list
+      probability distribution over internal nodes. Default is None, meaning uniform distribution.
+
+    Returns
+    -------
+    Node
+      the tree after crossover
+    """
+    r = Sigmoid()
+    r.insert_child(generate_random_tree(internal_nodes=internal_nodes, leaf_nodes=leaf_nodes, curr_depth=0, max_depth=max_depth, ephemeral_func=ephemeral_func, p=p))
+    
+    minus = Minus()
+    minus.insert_child(Constant(1.0))
+    minus.insert_child(Pointer(r))
+
+    mul1 = Times()
+    mul1.insert_child(Pointer(tree1))
+    mul1.insert_child(Pointer(r))
+
+    mul2 = Times()
+    mul2.insert_child(Pointer(tree2))
+    mul2.insert_child(minus)
+
+    plus = Plus()
+    plus.insert_child(mul1)
+    plus.insert_child(mul2)
+    return plus
 
 
 def node_level_crossover(tree: Node, donor: Node, same_depth: bool = False, prob_swap: float = 0.1) -> Node:
@@ -501,6 +548,44 @@ def safe_subtree_mutation(tree: Node, internal_nodes: list, leaf_nodes: list,
       the tree after mutation (warning: replace the original tree with the returned one to avoid undefined behavior)
     """
     return subtree_mutation(deepcopy(tree), internal_nodes, leaf_nodes, unif_depth=unif_depth, max_depth=max_depth, ephemeral_func=ephemeral_func, p=p)
+
+
+def geometric_semantic_tree_mutation(tree: Node, internal_nodes: list, leaf_nodes: list, max_depth: int = 4, ephemeral_func: Callable = None, p: List[float] = None, m: float = 0.5) -> Node:
+    """
+    Performs geometric semantic tree mutation. Pointers are used to avoid generation very large trees to store in memory.
+
+    Parameters
+    ----------
+    tree : Node
+      the tree that should be mutated
+    internal_nodes : list
+      list of possible internal nodes to generate the random tree
+    leaf_nodes : list
+      list of possible leaf nodes to generate the random tree
+    max_depth : int, optional
+      the maximal depth of the generated random tree (default is 4)
+    ephemeral_func: Callable
+      lambda expression with no parameters that generates a potentially different random constant every time this method is called, default is None, meaning that no ephemeral constant is generated
+    p : list
+      probability distribution over internal nodes. Default is None, meaning uniform distribution.
+    m : float
+      a coefficient in the geometric semantic mutation
+
+    Returns
+    -------
+    Node
+      the tree after mutation (warning: replace the original tree with the returned one to avoid undefined behavior)
+    """
+    r = generate_random_tree(internal_nodes=internal_nodes, leaf_nodes=leaf_nodes, curr_depth=0, max_depth=max_depth, ephemeral_func=ephemeral_func, p=p)
+    
+    mul = Times()
+    mul.insert_child(Constant(m))
+    mul.insert_child(Pointer(r))
+
+    plus = Plus()
+    plus.insert_child(Pointer(tree))
+    plus.insert_child(mul)
+    return plus
 
 
 def safe_subforest_mutation(forest: List[Node], internal_nodes: list, leaf_nodes: list,

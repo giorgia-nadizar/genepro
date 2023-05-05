@@ -319,6 +319,37 @@ class Constant(Node):
         return np.repeat(v, len(X))
 
 
+class Pointer(Node):
+    def __init__(self, value: Node):
+        super(Pointer, self).__init__()
+        if value is None:
+            raise AttributeError("The value provided in the constructor of Pointer is None.")
+        self.arity = 0
+        self.__value = value
+        self.symb = str(hash(self.__value))
+
+    def __deepcopy__(self, memodict=None):
+        if memodict is None:
+            memodict = {}
+        return Pointer(value=self.__value)
+
+    def get_value(self):
+        return self.__value
+
+    def set_value(self, value: Node):
+        self.__value = value
+        self.symb = str(hash(self.__value))
+
+    def _get_args_repr(self, args):
+        return self.__value._get_args_repr(args=args)
+    
+    def _single_hash_value(self) -> int:
+        return hash(self.__value)
+
+    def get_output(self, X: np.ndarray) -> np.ndarray:
+        return self.__value(X)
+
+
 class Power(Node):
     def __init__(self):
         super(Power, self).__init__()
@@ -380,6 +411,48 @@ class Tanh(Node):
     def get_output(self, X):
         c_outs = self._get_child_outputs(X)
         return np.tanh(c_outs[0])
+    
+
+class Identity(Node):
+    def __init__(self):
+        super(Identity, self).__init__()
+        self.arity = 1
+        self.symb = "identity"
+
+    def _get_args_repr(self, args):
+        return self._get_typical_repr(args, 'before')
+
+    def get_output(self, X):
+        c_outs = self._get_child_outputs(X)
+        return c_outs[0]
+
+
+class ReLU(Node):
+    def __init__(self):
+        super(ReLU, self).__init__()
+        self.arity = 1
+        self.symb = "relu"
+
+    def _get_args_repr(self, args):
+        return self._get_typical_repr(args, 'before')
+
+    def get_output(self, X):
+        c_outs = self._get_child_outputs(X)
+        return np.where(c_outs[0] > 0, c_outs[0], 0)
+
+
+class Sigmoid(Node):
+    def __init__(self):
+        super(Sigmoid, self).__init__()
+        self.arity = 1
+        self.symb = "sigmoid"
+
+    def _get_args_repr(self, args):
+        return self._get_typical_repr(args, 'before')
+
+    def get_output(self, X):
+        c_outs = self._get_child_outputs(X)
+        return 1.0/(1.0 + np.exp(-c_outs[0]))
 
 
 class UnaryMinus(Node):

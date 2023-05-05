@@ -64,7 +64,7 @@ if __name__ == "__main__":
     off2 = genepro.util.concatenate_nodes_with_binary_operator(off2, genepro.node_impl.Xor())
     print(off1.get_string_as_lisp_expr())
     print(off2.get_string_as_lisp_expr())
-    exit(1)
+    
 
     a = genepro.variation.generate_random_tree([genepro.node_impl.Plus(),
                                                 genepro.node_impl.Minus(),
@@ -77,8 +77,11 @@ if __name__ == "__main__":
                                                 genepro.node_impl.Constant(5)],
                                                max_depth=6)
     b = deepcopy(a)
+    print(hash(a))
+    print(hash(b))
     print(a.__hash__())
     print(b.__hash__())
+    exit(1)
     st = time.time()
     for _ in range(10 ** 6):
         c = counts_encode_tree(a, ["+","-","*","/","log","max","min"], 6, True)

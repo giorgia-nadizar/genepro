@@ -32,6 +32,7 @@ class Node:
     """
 
     def __init__(self):
+        super().__init__()
         self.symb = None
         self.fitness = -np.inf
         self.parent = None
@@ -104,13 +105,13 @@ class Node:
         """
         molt = 31
         h = 0
-        return self.__hash_recursive(h, molt)
-
-    def __hash_recursive(self, h: int, molt: int) -> int:
-        h = h * molt + zlib.adler32(bytes(self.symb, "utf-8"))
+        h = h * molt + self._single_hash_value()
         for c in self._children:
-            h = c.__hash_recursive(h, molt)
+            h = h * molt + hash(c)
         return h
+
+    def _single_hash_value(self) -> int:
+        return zlib.adler32(bytes(self.symb, "utf-8"))
 
     def structurally_equal(self, other: Node) -> bool:
         """
