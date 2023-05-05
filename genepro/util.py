@@ -7,7 +7,7 @@ import re
 
 from genepro.node import Node
 from genepro import node_impl
-from genepro.node_impl import Feature, Constant
+from genepro.node_impl import Feature, Constant, Pointer
 
 
 def compute_linear_scaling(y, p):
@@ -53,7 +53,7 @@ def tree_from_prefix_repr(prefix_repr: str) -> Node:
     possible_nodes = list()
     for node_cls in node_classes:
         # handle Features and Constants separetely (also, avoid base class Node)
-        if node_cls == Node or node_cls == Feature or node_cls == Constant:
+        if node_cls == Node or node_cls == Feature or node_cls == Constant or node_cls == Pointer:
             continue
         node_obj = node_cls()
         possible_nodes.append(node_obj)
@@ -98,6 +98,44 @@ def __tree_from_symb_list_recursive(symb_list: list, possible_nodes: list):
     # if reached this line, it must be a constant
     n = Constant(float(symb))
     return n, symb_list
+
+
+def get_subtree_as_full_list(tree: Node) -> list[Node]:
+    """
+    Given the tree, it retrieves the subtree in prefix order with pointers replaced with all the referenced nodes.
+
+    Parameters
+    ----------
+    tree : Node
+      the tree
+
+    Returns
+    -------
+    list[Node]
+      the list containing all the nodes of the tree with pointers replaced with the full tree
+    """
+    subtree = []
+    __get_subtree_as_full_list_recursive(tree, subtree)
+    return subtree
+
+
+def __get_subtree_as_full_list_recursive(tree: Node, subtree: list[Node]) -> None:
+    """
+    Helper method for `get_subtree_as_full_list` that uses recursion to visit the descendant nodes and populate the given list
+
+    Parameters
+    ----------
+    tree : Node
+      current node
+    subtree : list
+      list that is populated by including this node and then calling this method again on the children of that node, while replacing pointers with referenced nodes
+    """
+    if isinstance(tree, Pointer):
+        __get_subtree_as_full_list_recursive(tree.get_value(), subtree)
+    else:
+        subtree.append(tree)
+        for c in tree._children:
+            __get_subtree_as_full_list_recursive(c, subtree)
 
 
 def counts_encode_tree(tree: Node, operators: list, n_features: int, additional_properties: bool = True) -> list:

@@ -604,7 +604,7 @@ class Node:
                 s += "\n"
                 depth -= 1
                 s += "  " * (depth + 1)
-            s += "  [" + curr_node.symb + "] "
+            s += "  [" + curr_node._get_single_string_repr_tree() + "] "
         return s
 
     def get_string_as_lisp_expr(self) -> str:
@@ -623,10 +623,16 @@ class Node:
             if isinstance(curr_node, str):
                 s += curr_node + " "
             else:
-                s += curr_node.symb + " "
+                s += curr_node._get_single_string_repr_lisp() + " "
                 if curr_node.arity > 0:
                     nodes.append(")")
                     for i in range(curr_node.arity - 1, -1, -1):
                         nodes.append(curr_node.get_child(i))
                     nodes.append("(")
         return s.strip()
+    
+    def _get_single_string_repr_tree(self) -> str:
+        return self.symb
+    
+    def _get_single_string_repr_lisp(self) -> str:
+        return self.symb

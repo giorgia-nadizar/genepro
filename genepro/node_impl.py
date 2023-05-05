@@ -326,7 +326,7 @@ class Pointer(Node):
             raise AttributeError("The value provided in the constructor of Pointer is None.")
         self.arity = 0
         self.__value = value
-        self.symb = str(hash(self.__value))
+        self.symb = self.__value.get_readable_repr()
 
     def __deepcopy__(self, memodict=None):
         if memodict is None:
@@ -338,13 +338,19 @@ class Pointer(Node):
 
     def set_value(self, value: Node):
         self.__value = value
-        self.symb = str(hash(self.__value))
+        self.symb = self.__value.get_readable_repr()
 
     def _get_args_repr(self, args):
-        return self.__value._get_args_repr(args=args)
+        return self.__value.get_readable_repr()
     
     def _single_hash_value(self) -> int:
         return hash(self.__value)
+    
+    def _get_single_string_repr_tree(self) -> str:
+        return self.__value.get_string_as_tree()
+    
+    def _get_single_string_repr_lisp(self) -> str:
+        return self.__value.get_string_as_lisp_expr()
 
     def get_output(self, X: np.ndarray) -> np.ndarray:
         return self.__value(X)

@@ -74,13 +74,78 @@ if __name__ == "__main__":
                                                 genepro.node_impl.Max(), genepro.node_impl.Min()],
                                                [genepro.node_impl.Feature(0), genepro.node_impl.Feature(1),
                                                 genepro.node_impl.Feature(2), genepro.node_impl.Feature(3),
-                                                genepro.node_impl.Constant(5)],
+                                                genepro.node_impl.Constant(5.0)],
                                                max_depth=6)
     b = deepcopy(a)
     print(hash(a))
     print(hash(b))
     print(a.__hash__())
     print(b.__hash__())
+    print(a.get_readable_repr())
+    print()
+    print(a.get_string_as_tree())
+    print()
+    print(a.get_string_as_lisp_expr())
+    print()
+    operators: list[Node] = [genepro.node_impl.Plus(),
+                                                    genepro.node_impl.Minus(),
+                                                    genepro.node_impl.Times(),
+                                                    genepro.node_impl.Div(),
+                                                    genepro.node_impl.Log()
+                                                    ]
+    terminals: list[Node] = [genepro.node_impl.Feature(0), genepro.node_impl.Feature(1),
+                                                    genepro.node_impl.Feature(2), genepro.node_impl.Feature(3),
+                                                    genepro.node_impl.Constant(5.0)]
+    for _ in range(2):
+        tree1: Node = genepro.variation.generate_random_tree(operators,
+                                                terminals,
+                                                max_depth=3)
+    for _ in range(4):
+        tree2: Node = genepro.variation.generate_random_tree(operators, terminals,
+                                                max_depth=3)
+    print('========================')
+    print(tree1.get_string_as_lisp_expr())
+    print()
+    print(tree2.get_string_as_lisp_expr())
+    crossover: Node = genepro.variation.geometric_semantic_single_tree_crossover(tree1=tree1, tree2=tree2, internal_nodes=operators, leaf_nodes=terminals, max_depth=3)
+    print()
+    print(crossover.get_string_as_lisp_expr())
+    print()
+    print()
+    print(tree1.get_readable_repr())
+    print()
+    print(tree2.get_readable_repr())
+    print()
+    print(crossover.get_readable_repr())
+    print(hash(crossover))
+    print()
+    print()
+    print(genepro.util.tree_from_prefix_repr(str(genepro.util.get_subtree_as_full_list(crossover))).get_readable_repr())
+    print(hash(genepro.util.tree_from_prefix_repr(str(genepro.util.get_subtree_as_full_list(crossover)))))
+    print()
+    print()
+    print(tree1.get_string_as_tree())
+    print()
+    print(tree2.get_string_as_tree())
+    print()
+    print(crossover.get_string_as_tree())
+    print()
+    print()
+    print('========================')
+    mutation: Node = genepro.variation.geometric_semantic_tree_mutation(crossover, internal_nodes=operators, leaf_nodes=terminals, max_depth=3, m=0.85)
+    print()
+    print(mutation.get_string_as_lisp_expr())
+    print()
+    print()
+    print(mutation.get_readable_repr())
+    print(hash(mutation))
+    print(genepro.util.tree_from_prefix_repr(str(genepro.util.get_subtree_as_full_list(mutation))).get_readable_repr())
+    print(hash(genepro.util.tree_from_prefix_repr(str(genepro.util.get_subtree_as_full_list(mutation)))))
+    print()
+    print()
+    print('========================')
+    print(deepcopy(crossover).get_string_as_lisp_expr())
+    print(deepcopy(mutation).get_string_as_lisp_expr())
     exit(1)
     st = time.time()
     for _ in range(10 ** 6):

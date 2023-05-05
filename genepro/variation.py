@@ -10,7 +10,7 @@ from numpy.random import shuffle
 from copy import deepcopy
 
 from genepro.node import Node
-from genepro.node_impl import Constant, Minus, Plus, Mul, Sigmoid, Pointer, Times
+from genepro.node_impl import Constant, Minus, Plus, Sigmoid, Pointer, Times
 
 
 def generate_random_tree(internal_nodes: list, leaf_nodes: list, max_depth: int, curr_depth: int = 0, ephemeral_func: Callable = None, p: List[float] = None):
