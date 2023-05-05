@@ -320,10 +320,15 @@ class Constant(Node):
 
 
 class Pointer(Node):
-    def __init__(self, value: Node):
+    def __init__(self, value: Node, cache: dict[Node, np.ndarray] = None, store_in_cache: bool = False):
         super(Pointer, self).__init__()
         if value is None:
             raise AttributeError("The value provided in the constructor of Pointer is None.")
+        if cache is None:
+            self.__cache = dict()
+        else:
+            self.__cache = cache
+        self.__store_in_cache: bool = store_in_cache
         self.arity = 0
         self.__value = value
         self.symb = self.__value.get_readable_repr()
@@ -331,10 +336,19 @@ class Pointer(Node):
     def __deepcopy__(self, memodict=None):
         if memodict is None:
             memodict = {}
-        return Pointer(value=self.__value)
+        return Pointer(value=self.__value, cache=self.__cache, store_in_cache=self.__store_in_cache)
 
     def get_value(self):
         return self.__value
+    
+    def get_cache(self):
+        return self.__cache
+
+    def get_store_in_cache(self) -> bool:
+        return self.__store_in_cache
+
+    def set_store_in_cache(self, store_in_cache: bool) -> None:
+        self.__store_in_cache = store_in_cache
 
     def set_value(self, value: Node):
         self.__value = value
@@ -353,7 +367,13 @@ class Pointer(Node):
         return self.__value.get_string_as_lisp_expr()
 
     def get_output(self, X: np.ndarray) -> np.ndarray:
-        return self.__value(X)
+        if not self.__store_in_cache:
+            return self.__value(X)
+        if self.__value in self.__cache:
+            return self.__cache[self.__value]
+        result = self.__value(X)
+        self.__cache[self.__value] = result
+        return result
 
 
 class Power(Node):

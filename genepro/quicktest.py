@@ -87,6 +87,7 @@ if __name__ == "__main__":
     print()
     print(a.get_string_as_lisp_expr())
     print()
+    cache: dict[Node, np.ndarray] = {}
     operators: list[Node] = [genepro.node_impl.Plus(),
                                                     genepro.node_impl.Minus(),
                                                     genepro.node_impl.Times(),
@@ -107,7 +108,7 @@ if __name__ == "__main__":
     print(tree1.get_string_as_lisp_expr())
     print()
     print(tree2.get_string_as_lisp_expr())
-    crossover: Node = genepro.variation.geometric_semantic_single_tree_crossover(tree1=tree1, tree2=tree2, internal_nodes=operators, leaf_nodes=terminals, max_depth=3)
+    crossover: Node = genepro.variation.geometric_semantic_single_tree_crossover(tree1=tree1, tree2=tree2, internal_nodes=operators, leaf_nodes=terminals, max_depth=3, cache=cache, store_in_cache=True)
     print()
     print(crossover.get_string_as_lisp_expr())
     print()
@@ -132,7 +133,7 @@ if __name__ == "__main__":
     print()
     print()
     print('========================')
-    mutation: Node = genepro.variation.geometric_semantic_tree_mutation(crossover, internal_nodes=operators, leaf_nodes=terminals, max_depth=3, m=0.85)
+    mutation: Node = genepro.variation.geometric_semantic_tree_mutation(crossover, internal_nodes=operators, leaf_nodes=terminals, max_depth=3, m=0.85, cache=cache, store_in_cache=True)
     print()
     print(mutation.get_string_as_lisp_expr())
     print()
@@ -144,8 +145,17 @@ if __name__ == "__main__":
     print()
     print()
     print('========================')
-    print(deepcopy(crossover).get_string_as_lisp_expr())
-    print(deepcopy(mutation).get_string_as_lisp_expr())
+    X: np.ndarray = np.array([[234, 21, -2, 0.45],
+                              [78.342, 2.1, -343.1, 34.2],
+                              [134, -21.3, 1.2, 9.45],
+                              [34.78, 121.2, 75.5, 65.45],
+                              [24.23, -51, 2, -23.45],
+                              [7.3, 11.23, 42.6, 0.75]])
+    print(cache)
+    print(deepcopy(crossover)(X))
+    print(cache)
+    print(deepcopy(mutation)(X))
+    print(cache)
     exit(1)
     st = time.time()
     for _ in range(10 ** 6):

@@ -127,11 +127,7 @@ class Node:
         bool
           whether the two trees are structurally equal
         """
-        if self.arity != other.arity or self.symb != other.symb:
-            return False
-        if self.arity == 0:
-            return True
-        return all([self.get_child(i) == other.get_child(i) for i in range(self.arity)])
+        return self.get_readable_repr() == other.get_readable_repr()
 
     def semantically_equal(self, other: Node, X: np.ndarray) -> bool:
         """
