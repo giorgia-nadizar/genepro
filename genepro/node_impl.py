@@ -442,7 +442,7 @@ class Tanh(Node):
 
     def get_output(self, X):
         c_outs = self._get_child_outputs(X)
-        return np.tanh(c_outs[0])
+        return np.tanh(np.core.umath.clip(c_outs[0], -1e+100, 1e+100))
     
 
 class Identity(Node):
@@ -484,6 +484,7 @@ class Sigmoid(Node):
 
     def get_output(self, X):
         c_outs = self._get_child_outputs(X)
+        c_outs[0] = np.core.umath.clip(c_outs[0], -700.78, 700.78)
         return 1.0/(1.0 + np.exp(-c_outs[0]))
 
 
