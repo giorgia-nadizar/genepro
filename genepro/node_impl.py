@@ -338,6 +338,12 @@ class Pointer(Node):
             memodict = {}
         return Pointer(value=self.__value, cache=self.__cache, store_in_cache=self.__store_in_cache)
 
+    def get_height(self) -> int:
+        return self.__value.get_height()
+
+    def get_n_nodes(self) -> int:
+        return self.__value.get_n_nodes()
+
     def get_value(self):
         return self.__value
     
