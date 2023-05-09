@@ -10,7 +10,7 @@ from numpy.random import shuffle
 from copy import deepcopy
 
 from genepro.node import Node
-from genepro.node_impl import Constant, Minus, Plus, Sigmoid, Pointer, Times
+from genepro.node_impl import Constant, Minus, Plus, Sigmoid, Tanh, Pointer, Times
 
 
 def generate_random_tree(internal_nodes: list, leaf_nodes: list, max_depth: int, curr_depth: int = 0, ephemeral_func: Callable = None, p: List[float] = None):
@@ -590,7 +590,8 @@ def geometric_semantic_tree_mutation(tree: Node, internal_nodes: list, leaf_node
     if cache is None:
         cache = dict()
     
-    r = generate_random_tree(internal_nodes=internal_nodes, leaf_nodes=leaf_nodes, curr_depth=0, max_depth=max_depth, ephemeral_func=ephemeral_func, p=p)
+    r = Tanh()
+    r.insert_child(generate_random_tree(internal_nodes=internal_nodes, leaf_nodes=leaf_nodes, curr_depth=0, max_depth=max_depth, ephemeral_func=ephemeral_func, p=p))
     
     mul = Times()
     mul.insert_child(Constant(m))
