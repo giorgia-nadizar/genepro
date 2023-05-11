@@ -3,8 +3,10 @@ from genepro.node import Node
 
 
 class Plus(Node):
-    def __init__(self):
-        super(Plus, self).__init__()
+    def __init__(self,
+                 fix_properties: bool = False
+                 ) -> None:
+        super().__init__(fix_properties=fix_properties)
         self.arity = 2
         self.symb = '+'
 
@@ -17,8 +19,10 @@ class Plus(Node):
 
 
 class Minus(Node):
-    def __init__(self):
-        super(Minus, self).__init__()
+    def __init__(self,
+                 fix_properties: bool = False
+                 ) -> None:
+        super().__init__(fix_properties=fix_properties)
         self.arity = 2
         self.symb = '-'
 
@@ -31,8 +35,10 @@ class Minus(Node):
 
 
 class Times(Node):
-    def __init__(self):
-        super(Times, self).__init__()
+    def __init__(self,
+                 fix_properties: bool = False
+                 ) -> None:
+        super().__init__(fix_properties=fix_properties)
         self.arity = 2
         self.symb = '*'
 
@@ -45,8 +51,10 @@ class Times(Node):
 
 
 class Div(Node):
-    def __init__(self):
-        super(Div, self).__init__()
+    def __init__(self,
+                 fix_properties: bool = False
+                 ) -> None:
+        super().__init__(fix_properties=fix_properties)
         self.arity = 2
         self.symb = '/'
 
@@ -65,8 +73,10 @@ class Div(Node):
 
 
 class Mod(Node):
-    def __init__(self):
-        super(Mod, self).__init__()
+    def __init__(self,
+                 fix_properties: bool = False
+                 ) -> None:
+        super().__init__(fix_properties=fix_properties)
         self.arity = 2
         self.symb = '%'
 
@@ -85,8 +95,10 @@ class Mod(Node):
 
 
 class Square(Node):
-    def __init__(self):
-        super(Square, self).__init__()
+    def __init__(self,
+                 fix_properties: bool = False
+                 ) -> None:
+        super().__init__(fix_properties=fix_properties)
         self.arity = 1
         self.symb = '**2'
 
@@ -100,8 +112,10 @@ class Square(Node):
 
 
 class Cube(Node):
-    def __init__(self):
-        super(Cube, self).__init__()
+    def __init__(self,
+                 fix_properties: bool = False
+                 ) -> None:
+        super().__init__(fix_properties=fix_properties)
         self.arity = 1
         self.symb = '**3'
 
@@ -115,8 +129,10 @@ class Cube(Node):
 
 
 class Sqrt(Node):
-    def __init__(self):
-        super(Sqrt, self).__init__()
+    def __init__(self,
+                 fix_properties: bool = False
+                 ) -> None:
+        super().__init__(fix_properties=fix_properties)
         self.arity = 1
         self.symb = 'sqrt'
 
@@ -131,8 +147,10 @@ class Sqrt(Node):
 
 
 class Log(Node):
-    def __init__(self):
-        super(Log, self).__init__()
+    def __init__(self,
+                 fix_properties: bool = False
+                 ) -> None:
+        super().__init__(fix_properties=fix_properties)
         self.arity = 1
         self.symb = 'log'
 
@@ -148,8 +166,10 @@ class Log(Node):
 
 
 class Exp(Node):
-    def __init__(self):
-        super(Exp, self).__init__()
+    def __init__(self,
+                 fix_properties: bool = False
+                 ) -> None:
+        super().__init__(fix_properties=fix_properties)
         self.arity = 1
         self.symb = "exp"
 
@@ -163,8 +183,10 @@ class Exp(Node):
 
 
 class Sin(Node):
-    def __init__(self):
-        super(Sin, self).__init__()
+    def __init__(self,
+                 fix_properties: bool = False
+                 ) -> None:
+        super().__init__(fix_properties=fix_properties)
         self.arity = 1
         self.symb = "sin"
 
@@ -177,8 +199,10 @@ class Sin(Node):
 
 
 class Cos(Node):
-    def __init__(self):
-        super(Cos, self).__init__()
+    def __init__(self,
+                 fix_properties: bool = False
+                 ) -> None:
+        super().__init__(fix_properties=fix_properties)
         self.arity = 1
         self.symb = "cos"
 
@@ -191,8 +215,10 @@ class Cos(Node):
 
 
 class Max(Node):
-    def __init__(self):
-        super(Max, self).__init__()
+    def __init__(self,
+                 fix_properties: bool = False
+                 ) -> None:
+        super().__init__(fix_properties=fix_properties)
         self.arity = 2
         self.symb = "max"
 
@@ -205,8 +231,10 @@ class Max(Node):
 
 
 class Min(Node):
-    def __init__(self):
-        super(Min, self).__init__()
+    def __init__(self,
+                 fix_properties: bool = False
+                 ) -> None:
+        super().__init__(fix_properties=fix_properties)
         self.arity = 2
         self.symb = "min"
 
@@ -219,8 +247,10 @@ class Min(Node):
 
 
 class And(Node):
-    def __init__(self):
-        super(And, self).__init__()
+    def __init__(self,
+                 fix_properties: bool = False
+                 ) -> None:
+        super().__init__(fix_properties=fix_properties)
         self.arity = 2
         self.symb = "and"
 
@@ -233,8 +263,10 @@ class And(Node):
 
 
 class Or(Node):
-    def __init__(self):
-        super(Or, self).__init__()
+    def __init__(self,
+                 fix_properties: bool = False
+                 ) -> None:
+        super().__init__(fix_properties=fix_properties)
         self.arity = 2
         self.symb = "or"
 
@@ -247,8 +279,10 @@ class Or(Node):
 
 
 class Xor(Node):
-    def __init__(self):
-        super(Xor, self).__init__()
+    def __init__(self,
+                 fix_properties: bool = False
+                 ) -> None:
+        super().__init__(fix_properties=fix_properties)
         self.arity = 2
         self.symb = "xor"
 
@@ -265,8 +299,10 @@ class Xor(Node):
 
 
 class IfThenElse(Node):
-    def __init__(self):
-        super(IfThenElse, self).__init__()
+    def __init__(self,
+                 fix_properties: bool = False
+                 ) -> None:
+        super().__init__(fix_properties=fix_properties)
         self.arity = 3
         self.symb = "if-then-else"
 
@@ -279,8 +315,11 @@ class IfThenElse(Node):
 
 
 class Feature(Node):
-    def __init__(self, id):
-        super(Feature, self).__init__()
+    def __init__(self,
+                 id: int,
+                 fix_properties: bool = False
+                 ) -> None:
+        super().__init__(fix_properties=fix_properties)
         self.arity = 0
         self.id = id
         self.symb = 'x_' + str(id)
@@ -293,8 +332,11 @@ class Feature(Node):
 
 
 class Constant(Node):
-    def __init__(self, value: float):
-        super(Constant, self).__init__()
+    def __init__(self,
+                 value: float,
+                 fix_properties: bool = False
+                 ) -> None:
+        super().__init__(fix_properties=fix_properties)
         if value is None:
             raise AttributeError("The value provided in the constructor of Constant is None.")
         self.arity = 0
@@ -320,8 +362,13 @@ class Constant(Node):
 
 
 class Pointer(Node):
-    def __init__(self, value: Node, cache: dict[Node, np.ndarray] = None, store_in_cache: bool = False):
-        super(Pointer, self).__init__()
+    def __init__(self,
+                 value: Node,
+                 cache: dict[Node, np.ndarray] = None,
+                 store_in_cache: bool = False,
+                 fix_properties: bool = False
+                 ) -> None:
+        super().__init__(fix_properties=fix_properties)
         if value is None:
             raise AttributeError("The value provided in the constructor of Pointer is None.")
         if cache is None:
@@ -394,8 +441,10 @@ class Pointer(Node):
 
 
 class Power(Node):
-    def __init__(self):
-        super(Power, self).__init__()
+    def __init__(self,
+                 fix_properties: bool = False
+                 ) -> None:
+        super().__init__(fix_properties=fix_properties)
         self.arity = 2
         self.symb = '**'
 
@@ -413,8 +462,10 @@ class Power(Node):
 
 
 class Arcsin(Node):
-    def __init__(self):
-        super(Arcsin, self).__init__()
+    def __init__(self,
+                 fix_properties: bool = False
+                 ) -> None:
+        super().__init__(fix_properties=fix_properties)
         self.arity = 1
         self.symb = "arcsin"
 
@@ -428,8 +479,10 @@ class Arcsin(Node):
 
 
 class Arccos(Node):
-    def __init__(self):
-        super(Arccos, self).__init__()
+    def __init__(self,
+                 fix_properties: bool = False
+                 ) -> None:
+        super().__init__(fix_properties=fix_properties)
         self.arity = 1
         self.symb = "arccos"
 
@@ -443,8 +496,10 @@ class Arccos(Node):
 
 
 class Tanh(Node):
-    def __init__(self):
-        super(Tanh, self).__init__()
+    def __init__(self,
+                 fix_properties: bool = False
+                 ) -> None:
+        super().__init__(fix_properties=fix_properties)
         self.arity = 1
         self.symb = "tanh"
 
@@ -457,8 +512,10 @@ class Tanh(Node):
     
 
 class Identity(Node):
-    def __init__(self):
-        super(Identity, self).__init__()
+    def __init__(self,
+                 fix_properties: bool = False
+                 ) -> None:
+        super().__init__(fix_properties=fix_properties)
         self.arity = 1
         self.symb = "identity"
 
@@ -471,8 +528,10 @@ class Identity(Node):
 
 
 class ReLU(Node):
-    def __init__(self):
-        super(ReLU, self).__init__()
+    def __init__(self,
+                 fix_properties: bool = False
+                 ) -> None:
+        super().__init__(fix_properties=fix_properties)
         self.arity = 1
         self.symb = "relu"
 
@@ -485,8 +544,10 @@ class ReLU(Node):
 
 
 class Sigmoid(Node):
-    def __init__(self):
-        super(Sigmoid, self).__init__()
+    def __init__(self,
+                 fix_properties: bool = False
+                 ) -> None:
+        super().__init__(fix_properties=fix_properties)
         self.arity = 1
         self.symb = "sigmoid"
 
@@ -500,8 +561,10 @@ class Sigmoid(Node):
 
 
 class UnaryMinus(Node):
-    def __init__(self):
-        super(UnaryMinus, self).__init__()
+    def __init__(self,
+                 fix_properties: bool = False
+                 ) -> None:
+        super().__init__(fix_properties=fix_properties)
         self.arity = 1
         self.symb = "u-"
 
@@ -514,8 +577,10 @@ class UnaryMinus(Node):
 
 
 class Not(Node):
-    def __init__(self):
-        super(Not, self).__init__()
+    def __init__(self,
+                 fix_properties: bool = False
+                 ) -> None:
+        super().__init__(fix_properties=fix_properties)
         self.arity = 1
         self.symb = "not"
 
@@ -528,8 +593,10 @@ class Not(Node):
 
 
 class Even(Node):
-    def __init__(self):
-        super(Even, self).__init__()
+    def __init__(self,
+                 fix_properties: bool = False
+                 ) -> None:
+        super().__init__(fix_properties=fix_properties)
         self.arity = 1
         self.symb = "even"
 
@@ -542,8 +609,10 @@ class Even(Node):
 
 
 class Odd(Node):
-    def __init__(self):
-        super(Odd, self).__init__()
+    def __init__(self,
+                 fix_properties: bool = False
+                 ) -> None:
+        super().__init__(fix_properties=fix_properties)
         self.arity = 1
         self.symb = "odd"
 
