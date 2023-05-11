@@ -353,8 +353,19 @@ class Pointer(Node):
     def get_store_in_cache(self) -> bool:
         return self.__store_in_cache
 
-    def set_store_in_cache(self, store_in_cache: bool) -> None:
+    def set_store_in_cache(self, store_in_cache: bool) -> bool:
+        old_store_in_cache = self.get_store_in_cache()
         self.__store_in_cache = store_in_cache
+        return old_store_in_cache
+    
+    def empty_cache(self) -> None:
+        self.__cache = dict()
+
+    def cache_size(self) -> int:
+        return len(self.__cache)
+    
+    def cache_keys(self) -> list[Node]:
+        return sorted(list(self.__cache.keys()), key=lambda x: hash(x))
 
     def set_value(self, value: Node):
         self.__value = value

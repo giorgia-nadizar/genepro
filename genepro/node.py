@@ -13,6 +13,16 @@ class Node:
     When used to represent the root, it also represents the tree.
     Implementations (in `genepro.node_impl`) inherit from this class and extend it to represent operations, features, or constants.
 
+    Parameters
+    ----------
+    fix_properties : bool
+      if True, it computes hash, readable representation, number of nodes, height, and lisp expr of the node the first time these
+      properties need to be computed and it stores these values within variables, the next time these methods are invoked again,
+      they avoid to re-compute these properties from scratch and they simply look-up the stored values, this avoids useless
+      waste of time in cases in which the tree does not change.
+      Mind that if the tree changes then you must compute again all these properties since the stored values are not valid anymore,
+      to do this, you must disable the fix_properties flag and set it to False.
+
     Attributes
     ----------
     symb : str
@@ -31,7 +41,9 @@ class Node:
       dictionary where you can store any type of information about the tree
     """
 
-    def __init__(self):
+    def __init__(self,
+                 fix_properties: bool = False
+                 ) -> None:
         super().__init__()
         self.symb = None
         self.fitness = -np.inf
@@ -40,6 +52,42 @@ class Node:
         self._children = list()
         self.child_id = -1
         self.attr = dict()
+
+        self.__fix_properties: bool = fix_properties
+        self.__hash_value: int = None
+        self.__readable_repr_value: str = None
+        self.__lisp_expr_value: str = None
+        self.__n_nodes_value: int = None
+        self.__height_value: int = None
+
+    def get_fix_properties(self) -> bool:
+        """
+        Returns whether or not you chose to fix the properties in this node
+
+        Returns
+        -------
+        bool
+          the fix properties value
+        """
+        return self.__fix_properties
+    
+    def set_fix_properties(self, fix_properties: bool) -> bool:
+        """
+        Set the fix properties value again
+
+        Parameters
+        ----------
+        fix_properties : bool
+          the new fix properties value
+
+        Returns
+        -------
+        bool
+          the previous fix properties value
+        """
+        old_fix_properties: bool = self.get_fix_properties()
+        self.__fix_properties = fix_properties
+        return old_fix_properties
 
     def __repr__(self) -> str:
         """
@@ -103,12 +151,15 @@ class Node:
         int
           hash code of the tree
         """
-        molt = 31
-        h = 0
-        h = h * molt + self._single_hash_value()
-        for c in self._children:
-            h = h * molt + hash(c)
-        return h
+        if not self.get_fix_properties() or self.__hash_value is None:
+          molt = 31
+          h = 0
+          h = h * molt + self._single_hash_value()
+          for c in self._children:
+              h = h * molt + hash(c)
+          self.__hash_value = h
+        
+        return self.__hash_value
 
     def _single_hash_value(self) -> int:
         return zlib.adler32(bytes(self.symb, "utf-8"))
@@ -170,9 +221,12 @@ class Node:
         str
           Human-readable representation of the subtree
         """
-        repr = [""]  # trick to pass string by reference
-        self.__get_readable_repr_recursive(repr)
-        return repr[0]
+        if not self.get_fix_properties() or self.__readable_repr_value is None:
+          repr = [""]  # trick to pass string by reference
+          self.__get_readable_repr_recursive(repr)
+          self.__readable_repr_value = repr[0]
+        
+        return self.__readable_repr_value
 
     def insert_child(self, c: Node, i: int = None):
         """
@@ -294,12 +348,15 @@ class Node:
         int
           the height of this node
         """
-        if self.arity == 0:
-            return 0
-        a = []
-        for c in self._children:
-            a.append(c.get_height())
-        return 1 + max(a)
+        if not self.get_fix_properties() or self.__height_value is None:
+          if self.arity == 0:
+              return 0
+          a = []
+          for c in self._children:
+              a.append(c.get_height())
+          self.__height_value = 1 + max(a)
+        
+        return self.__height_value
 
     def get_n_nodes(self) -> int:
         """
@@ -310,12 +367,15 @@ class Node:
         int
           the amount of nodes in this tree
         """
-        if self.arity == 0:
-            return 1
-        a = []
-        for c in self._children:
-            a.append(c.get_n_nodes())
-        return 1 + sum(a)
+        if not self.get_fix_properties() or self.__n_nodes_value is None:
+          if self.arity == 0:
+              return 1
+          a = []
+          for c in self._children:
+              a.append(c.get_n_nodes())
+          self.__n_nodes_value = 1 + sum(a)
+
+        return self.__n_nodes_value
 
     def _get_child_outputs(self, X: np.ndarray) -> list:
         """
@@ -612,20 +672,23 @@ class Node:
         str
           string representation
         """
-        s = ""
-        nodes = [self]
-        while len(nodes) > 0:
-            curr_node = nodes.pop(len(nodes) - 1)
-            if isinstance(curr_node, str):
-                s += curr_node + " "
-            else:
-                s += curr_node._get_single_string_repr_lisp() + " "
-                if curr_node.arity > 0:
-                    nodes.append(")")
-                    for i in range(curr_node.arity - 1, -1, -1):
-                        nodes.append(curr_node.get_child(i))
-                    nodes.append("(")
-        return s.strip()
+        if not self.get_fix_properties() or self.__lisp_expr_value is None:
+          s = ""
+          nodes = [self]
+          while len(nodes) > 0:
+              curr_node = nodes.pop(len(nodes) - 1)
+              if isinstance(curr_node, str):
+                  s += curr_node + " "
+              else:
+                  s += curr_node._get_single_string_repr_lisp() + " "
+                  if curr_node.arity > 0:
+                      nodes.append(")")
+                      for i in range(curr_node.arity - 1, -1, -1):
+                          nodes.append(curr_node.get_child(i))
+                      nodes.append("(")
+          self.__lisp_expr_value = s.strip()
+
+        return self.__lisp_expr_value
     
     def _get_single_string_repr_tree(self) -> str:
         return self.symb

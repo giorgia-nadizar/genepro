@@ -221,7 +221,7 @@ def __find_cuts_subtree_crossover_two_children(tree: Node, max_depth: int, tree1
         __find_cuts_subtree_crossover_two_children(tree.get_child(i), max_depth, tree1_mutated_branch_max_depth, child1_height, candidates)
 
 
-def geometric_semantic_single_tree_crossover(tree1: Node, tree2: Node, internal_nodes: list[Node], leaf_nodes: list[Node], max_depth: int = 4, ephemeral_func: Callable = None, p: List[float] = None, cache: dict[Node, np.ndarray] = None, store_in_cache: bool = False) -> Node:
+def geometric_semantic_single_tree_crossover(tree1: Node, tree2: Node, internal_nodes: list[Node], leaf_nodes: list[Node], max_depth: int = 4, ephemeral_func: Callable = None, p: List[float] = None, cache: dict[Node, np.ndarray] = None, store_in_cache: bool = False, fix_properties: bool = False) -> Node:
     """
     Performs geometric semantic crossover and returns the resulting offspring without changing the original trees
 
@@ -245,6 +245,8 @@ def geometric_semantic_single_tree_crossover(tree1: Node, tree2: Node, internal_
       cache that stores results for trees that have been seen during the evolution
     store_in_cache : bool
       if True, it uses the cache dictionary to store already computed results, otherwise, it computes every time the results of the whole tree
+    fix_properties : bool
+      the fix_properties attribute of the Node class
       
     Returns
     -------
@@ -254,22 +256,22 @@ def geometric_semantic_single_tree_crossover(tree1: Node, tree2: Node, internal_
     if cache is None:
         cache = dict()
 
-    r = Sigmoid()
+    r = Sigmoid(fix_properties=fix_properties)
     r.insert_child(generate_random_tree(internal_nodes=internal_nodes, leaf_nodes=leaf_nodes, curr_depth=0, max_depth=max_depth, ephemeral_func=ephemeral_func, p=p))
     
-    minus = Minus()
-    minus.insert_child(Constant(1.0))
-    minus.insert_child(Pointer(r, cache=cache, store_in_cache=store_in_cache))
+    minus = Minus(fix_properties=fix_properties)
+    minus.insert_child(Constant(1.0, fix_properties=fix_properties))
+    minus.insert_child(Pointer(r, cache=cache, store_in_cache=store_in_cache, fix_properties=fix_properties))
 
-    mul1 = Times()
-    mul1.insert_child(Pointer(tree1, cache=cache, store_in_cache=store_in_cache))
-    mul1.insert_child(Pointer(r, cache=cache, store_in_cache=store_in_cache))
+    mul1 = Times(fix_properties=fix_properties)
+    mul1.insert_child(Pointer(tree1, cache=cache, store_in_cache=store_in_cache, fix_properties=fix_properties))
+    mul1.insert_child(Pointer(r, cache=cache, store_in_cache=store_in_cache, fix_properties=fix_properties))
 
-    mul2 = Times()
-    mul2.insert_child(Pointer(tree2, cache=cache, store_in_cache=store_in_cache))
+    mul2 = Times(fix_properties=fix_properties)
+    mul2.insert_child(Pointer(tree2, cache=cache, store_in_cache=store_in_cache, fix_properties=fix_properties))
     mul2.insert_child(minus)
 
-    plus = Plus()
+    plus = Plus(fix_properties=fix_properties)
     plus.insert_child(mul1)
     plus.insert_child(mul2)
     return plus
@@ -557,7 +559,7 @@ def safe_subtree_mutation(tree: Node, internal_nodes: list, leaf_nodes: list,
     return subtree_mutation(deepcopy(tree), internal_nodes, leaf_nodes, unif_depth=unif_depth, max_depth=max_depth, ephemeral_func=ephemeral_func, p=p)
 
 
-def geometric_semantic_tree_mutation(tree: Node, internal_nodes: list, leaf_nodes: list, max_depth: int = 4, ephemeral_func: Callable = None, p: List[float] = None, m: float = 0.5, cache: dict[Node, np.ndarray] = None, store_in_cache: bool = False) -> Node:
+def geometric_semantic_tree_mutation(tree: Node, internal_nodes: list, leaf_nodes: list, max_depth: int = 4, ephemeral_func: Callable = None, p: List[float] = None, m: float = 0.5, cache: dict[Node, np.ndarray] = None, store_in_cache: bool = False, fix_properties: bool = False) -> Node:
     """
     Performs geometric semantic tree mutation. Pointers are used to avoid generation very large trees to store in memory.
 
@@ -581,7 +583,9 @@ def geometric_semantic_tree_mutation(tree: Node, internal_nodes: list, leaf_node
       cache that stores results for trees that have been seen during the evolution
     store_in_cache : bool
       if True, it uses the cache dictionary to store already computed results, otherwise, it computes every time the results of the whole tree
-      
+    fix_properties : bool
+      the fix_properties attribute of the Node class
+
     Returns
     -------
     Node
@@ -590,15 +594,15 @@ def geometric_semantic_tree_mutation(tree: Node, internal_nodes: list, leaf_node
     if cache is None:
         cache = dict()
     
-    r = Tanh()
+    r = Tanh(fix_properties=fix_properties)
     r.insert_child(generate_random_tree(internal_nodes=internal_nodes, leaf_nodes=leaf_nodes, curr_depth=0, max_depth=max_depth, ephemeral_func=ephemeral_func, p=p))
     
-    mul = Times()
-    mul.insert_child(Constant(m))
-    mul.insert_child(Pointer(r, cache=cache, store_in_cache=store_in_cache))
+    mul = Times(fix_properties=fix_properties)
+    mul.insert_child(Constant(m, fix_properties=fix_properties))
+    mul.insert_child(Pointer(r, cache=cache, store_in_cache=store_in_cache, fix_properties=fix_properties))
 
-    plus = Plus()
-    plus.insert_child(Pointer(tree, cache=cache, store_in_cache=store_in_cache))
+    plus = Plus(fix_properties=fix_properties)
+    plus.insert_child(Pointer(tree, cache=cache, store_in_cache=store_in_cache, fix_properties=fix_properties))
     plus.insert_child(mul)
     return plus
 
