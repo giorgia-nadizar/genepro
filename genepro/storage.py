@@ -1,15 +1,17 @@
 from __future__ import annotations
-from typing import Dict, List, TypeVar, Generic
-
+from typing import TypeVar, Generic
+from weakref import WeakKeyDictionary
 from genepro.node import Node
 
 T = TypeVar("T")
+K = TypeVar("K")
+V = TypeVar("V")
 
 
 class Storage(Generic[T]):
     def __init__(self) -> None:
         super().__init__()
-        self.__cache: Dict[int, T] = {}
+        self.__cache: dict[int, T] = {}
 
     def get(self, individual: Node) -> T:
         if not self.has_value(individual):
@@ -36,5 +38,53 @@ class Storage(Generic[T]):
     def size(self) -> int:
         return len(self.__cache)
 
-    def keys(self) -> List[int]:
+    def keys(self) -> list[int]:
         return list(self.__cache.keys())
+
+
+class WeakCache:
+    def __init__(self) -> None:
+        super().__init__()
+        self.__cache: WeakKeyDictionary = WeakKeyDictionary()
+        self.__hit: int = 0
+        self.__tot: int = 0
+
+    def contains(self, key: K) -> bool:
+        return key in self.__cache
+
+    def get_hit(self) -> int:
+        return self.__hit
+
+    def get_tot(self) -> int:
+        return self.__tot
+
+    def get_miss(self) -> int:
+        return self.get_tot() - self.get_hit()
+    
+    def hit_ratio(self) -> float:
+        return self.hit_ratio() / float(self.get_tot())
+    
+    def miss_ratio(self) -> float:
+        return self.miss_ratio() / float(self.get_tot())
+    
+    def empty_cache(self) -> None:
+        self.__cache = WeakKeyDictionary()
+        self.__tot = 0
+        self.__hit = 0
+
+    def cache_size(self) -> int:
+        return len(self.__cache)
+    
+    def cache_keys(self) -> list[K]:
+        return sorted(list(self.__cache.keys()), key=lambda x: hash(x))
+    
+    def get(self, key: K) -> V:
+        self.__tot += 1
+        if self.contains(key):
+            self.__hit += 1
+            return self.__cache[key]
+        return None
+
+    def set(self, key: K, value: V) -> None:
+        self.__cache[key] = value
+    
