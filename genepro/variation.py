@@ -2,10 +2,10 @@ import random
 from typing import Callable, List
 
 import numpy as np
-from numpy.random import random as randu
+from random import random as randu
 from numpy.random import normal as randn
-from numpy.random import choice as randc
-from numpy.random import randint as randi
+from random import choices as randc
+from random import randint as randi
 from numpy.random import shuffle
 from copy import deepcopy
 
@@ -55,9 +55,9 @@ def generate_random_tree(internal_nodes: list, leaf_nodes: list, max_depth: int,
         leaf_nodes_0 = leaf_nodes + [Constant(round(ephemeral_func(), 2))]
 
     if curr_depth == max_depth or randu() < prob_leaf:
-        n = randc(leaf_nodes_0).create_new_empty_node()
+        n = randc(leaf_nodes_0)[0].create_new_empty_node()
     else:
-        n = randc(internal_nodes, p=p).create_new_empty_node()
+        n = randc(internal_nodes, weights=p)[0].create_new_empty_node()
 
     for _ in range(n.arity):
         c = generate_random_tree(internal_nodes, leaf_nodes, max_depth, curr_depth + 1, ephemeral_func, p)
