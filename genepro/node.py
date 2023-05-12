@@ -323,6 +323,17 @@ class Node:
         """
         raise NotImplementedError()
 
+    def create_new_empty_node(self) -> Node:
+        """
+        Returns a new empty instance of the given type of node
+
+        Returns
+        -------
+        Node
+          a new empty instance of the given type of node
+        """
+        raise NotImplementedError()
+
     def get_depth(self) -> int:
         """
         Returns the depth of this node (the root node has depth 0)

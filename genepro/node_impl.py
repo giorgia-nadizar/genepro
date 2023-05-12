@@ -1,5 +1,6 @@
 import numpy as np
 from genepro.node import Node
+from genepro.storage import WeakCache
 
 
 class Plus(Node):
@@ -9,6 +10,9 @@ class Plus(Node):
         super().__init__(fix_properties=fix_properties)
         self.arity = 2
         self.symb = '+'
+
+    def create_new_empty_node(self) -> Node:
+        return Plus(fix_properties=self.get_fix_properties())
 
     def _get_args_repr(self, args):
         return self._get_typical_repr(args, 'between')
@@ -26,6 +30,9 @@ class Minus(Node):
         self.arity = 2
         self.symb = '-'
 
+    def create_new_empty_node(self) -> Node:
+        return Minus(fix_properties=self.get_fix_properties())
+
     def _get_args_repr(self, args):
         return self._get_typical_repr(args, 'between')
 
@@ -42,6 +49,9 @@ class Times(Node):
         self.arity = 2
         self.symb = '*'
 
+    def create_new_empty_node(self) -> Node:
+        return Times(fix_properties=self.get_fix_properties())
+
     def _get_args_repr(self, args):
         return self._get_typical_repr(args, 'between')
 
@@ -57,6 +67,9 @@ class Div(Node):
         super().__init__(fix_properties=fix_properties)
         self.arity = 2
         self.symb = '/'
+
+    def create_new_empty_node(self) -> Node:
+        return Div(fix_properties=self.get_fix_properties())
 
     def _get_args_repr(self, args):
         return self._get_typical_repr(args, 'between')
@@ -80,6 +93,9 @@ class Mod(Node):
         self.arity = 2
         self.symb = '%'
 
+    def create_new_empty_node(self) -> Node:
+        return Mod(fix_properties=self.get_fix_properties())
+
     def _get_args_repr(self, args):
         return self._get_typical_repr(args, 'between')
 
@@ -102,6 +118,9 @@ class Square(Node):
         self.arity = 1
         self.symb = '**2'
 
+    def create_new_empty_node(self) -> Node:
+        return Square(fix_properties=self.get_fix_properties())
+
     def _get_args_repr(self, args):
         return self._get_typical_repr(args, 'after')
 
@@ -118,6 +137,9 @@ class Cube(Node):
         super().__init__(fix_properties=fix_properties)
         self.arity = 1
         self.symb = '**3'
+
+    def create_new_empty_node(self) -> Node:
+        return Cube(fix_properties=self.get_fix_properties())
 
     def _get_args_repr(self, args):
         return self._get_typical_repr(args, 'after')
@@ -136,6 +158,9 @@ class Sqrt(Node):
         self.arity = 1
         self.symb = 'sqrt'
 
+    def create_new_empty_node(self) -> Node:
+        return Sqrt(fix_properties=self.get_fix_properties())
+
     def _get_args_repr(self, args):
         # let's report also protection
         return "sqrt(abs(" + args[0] + "))"
@@ -153,6 +178,9 @@ class Log(Node):
         super().__init__(fix_properties=fix_properties)
         self.arity = 1
         self.symb = 'log'
+
+    def create_new_empty_node(self) -> Node:
+        return Log(fix_properties=self.get_fix_properties())
 
     def _get_args_repr(self, args):
         # let's report also protection (to some level of detail)
@@ -173,6 +201,9 @@ class Exp(Node):
         self.arity = 1
         self.symb = "exp"
 
+    def create_new_empty_node(self) -> Node:
+        return Exp(fix_properties=self.get_fix_properties())
+
     def _get_args_repr(self, args):
         return self._get_typical_repr(args, 'before')
 
@@ -190,6 +221,9 @@ class Sin(Node):
         self.arity = 1
         self.symb = "sin"
 
+    def create_new_empty_node(self) -> Node:
+        return Sin(fix_properties=self.get_fix_properties())
+
     def _get_args_repr(self, args):
         return self._get_typical_repr(args, 'before')
 
@@ -205,6 +239,9 @@ class Cos(Node):
         super().__init__(fix_properties=fix_properties)
         self.arity = 1
         self.symb = "cos"
+
+    def create_new_empty_node(self) -> Node:
+        return Cos(fix_properties=self.get_fix_properties())
 
     def _get_args_repr(self, args):
         return self._get_typical_repr(args, 'before')
@@ -222,6 +259,9 @@ class Max(Node):
         self.arity = 2
         self.symb = "max"
 
+    def create_new_empty_node(self) -> Node:
+        return Max(fix_properties=self.get_fix_properties())
+
     def _get_args_repr(self, args):
         return self._get_typical_repr(args, "before")
 
@@ -237,6 +277,9 @@ class Min(Node):
         super().__init__(fix_properties=fix_properties)
         self.arity = 2
         self.symb = "min"
+
+    def create_new_empty_node(self) -> Node:
+        return Min(fix_properties=self.get_fix_properties())
 
     def _get_args_repr(self, args):
         return self._get_typical_repr(args, "before")
@@ -254,6 +297,9 @@ class And(Node):
         self.arity = 2
         self.symb = "and"
 
+    def create_new_empty_node(self) -> Node:
+        return And(fix_properties=self.get_fix_properties())
+
     def _get_args_repr(self, args):
         return self._get_typical_repr(args, "between")
 
@@ -270,6 +316,9 @@ class Or(Node):
         self.arity = 2
         self.symb = "or"
 
+    def create_new_empty_node(self) -> Node:
+        return Or(fix_properties=self.get_fix_properties())
+
     def _get_args_repr(self, args):
         return self._get_typical_repr(args, "between")
 
@@ -285,6 +334,9 @@ class Xor(Node):
         super().__init__(fix_properties=fix_properties)
         self.arity = 2
         self.symb = "xor"
+
+    def create_new_empty_node(self) -> Node:
+        return Xor(fix_properties=self.get_fix_properties())
 
     def _get_args_repr(self, args):
         return self._get_typical_repr(args, "between")
@@ -306,6 +358,9 @@ class IfThenElse(Node):
         self.arity = 3
         self.symb = "if-then-else"
 
+    def create_new_empty_node(self) -> Node:
+        return IfThenElse(fix_properties=self.get_fix_properties())
+
     def _get_args_repr(self, args):
         return "if(" + args[0] + " >= 0)then(" + args[1] + ")else(" + args[2] + ")"
 
@@ -323,6 +378,9 @@ class Feature(Node):
         self.arity = 0
         self.id = id
         self.symb = 'x_' + str(id)
+
+    def create_new_empty_node(self) -> Node:
+        return Feature(id=self.id, fix_properties=self.get_fix_properties())
 
     def _get_args_repr(self, args):
         return self.symb
@@ -342,6 +400,9 @@ class Constant(Node):
         self.arity = 0
         self.__value = value
         self.symb = str(value)
+
+    def create_new_empty_node(self) -> Node:
+        return Constant(value=self.__value, fix_properties=self.get_fix_properties())
 
     def get_value(self):
         return self.__value
@@ -364,26 +425,26 @@ class Constant(Node):
 class Pointer(Node):
     def __init__(self,
                  value: Node,
-                 cache: dict[Node, np.ndarray] = None,
+                 cache: WeakCache = None,
                  store_in_cache: bool = False,
                  fix_properties: bool = False
                  ) -> None:
         super().__init__(fix_properties=fix_properties)
         if value is None:
             raise AttributeError("The value provided in the constructor of Pointer is None.")
-        if cache is None:
-            self.__cache = dict()
-        else:
-            self.__cache = cache
+        self.__cache: WeakCache = cache
         self.__store_in_cache: bool = store_in_cache
         self.arity = 0
         self.__value = value
         self.symb = self.__value.get_readable_repr()
 
+    def create_new_empty_node(self) -> Node:
+        return Pointer(value=self.__value, cache=self.__cache, store_in_cache=self.__store_in_cache, fix_properties=self.__fix_properties)
+
     def __deepcopy__(self, memodict=None):
         if memodict is None:
             memodict = {}
-        return Pointer(value=self.__value, cache=self.__cache, store_in_cache=self.__store_in_cache)
+        return Pointer(value=self.__value, cache=self.__cache, store_in_cache=self.__store_in_cache, fix_properties=self.__fix_properties)
 
     def get_height(self) -> int:
         return self.__value.get_height()
@@ -404,15 +465,6 @@ class Pointer(Node):
         old_store_in_cache = self.get_store_in_cache()
         self.__store_in_cache = store_in_cache
         return old_store_in_cache
-    
-    def empty_cache(self) -> None:
-        self.__cache = dict()
-
-    def cache_size(self) -> int:
-        return len(self.__cache)
-    
-    def cache_keys(self) -> list[Node]:
-        return sorted(list(self.__cache.keys()), key=lambda x: hash(x))
 
     def set_value(self, value: Node):
         self.__value = value
@@ -433,10 +485,11 @@ class Pointer(Node):
     def get_output(self, X: np.ndarray) -> np.ndarray:
         if not self.__store_in_cache:
             return self.__value(X)
-        if self.__value in self.__cache:
-            return self.__cache[self.__value]
+        r = self.__cache.get(self.__value)
+        if r is not None:
+            return r
         result = self.__value(X)
-        self.__cache[self.__value] = result
+        self.__cache.set(self.__value, result)
         return result
 
 
@@ -447,6 +500,9 @@ class Power(Node):
         super().__init__(fix_properties=fix_properties)
         self.arity = 2
         self.symb = '**'
+
+    def create_new_empty_node(self) -> Node:
+        return Power(fix_properties=self.get_fix_properties())
 
     def _get_args_repr(self, args):
         return self._get_typical_repr(args, 'between')
@@ -469,6 +525,9 @@ class Arcsin(Node):
         self.arity = 1
         self.symb = "arcsin"
 
+    def create_new_empty_node(self) -> Node:
+        return Arcsin(fix_properties=self.get_fix_properties())
+
     def _get_args_repr(self, args):
         return self._get_typical_repr(args, 'before')
 
@@ -485,6 +544,9 @@ class Arccos(Node):
         super().__init__(fix_properties=fix_properties)
         self.arity = 1
         self.symb = "arccos"
+
+    def create_new_empty_node(self) -> Node:
+        return Arccos(fix_properties=self.get_fix_properties())
 
     def _get_args_repr(self, args):
         return self._get_typical_repr(args, 'before')
@@ -503,6 +565,9 @@ class Tanh(Node):
         self.arity = 1
         self.symb = "tanh"
 
+    def create_new_empty_node(self) -> Node:
+        return Tanh(fix_properties=self.get_fix_properties())
+
     def _get_args_repr(self, args):
         return self._get_typical_repr(args, 'before')
 
@@ -518,6 +583,9 @@ class Identity(Node):
         super().__init__(fix_properties=fix_properties)
         self.arity = 1
         self.symb = "identity"
+
+    def create_new_empty_node(self) -> Node:
+        return Identity(fix_properties=self.get_fix_properties())
 
     def _get_args_repr(self, args):
         return self._get_typical_repr(args, 'before')
@@ -535,6 +603,9 @@ class ReLU(Node):
         self.arity = 1
         self.symb = "relu"
 
+    def create_new_empty_node(self) -> Node:
+        return ReLU(fix_properties=self.get_fix_properties())
+
     def _get_args_repr(self, args):
         return self._get_typical_repr(args, 'before')
 
@@ -550,6 +621,9 @@ class Sigmoid(Node):
         super().__init__(fix_properties=fix_properties)
         self.arity = 1
         self.symb = "sigmoid"
+
+    def create_new_empty_node(self) -> Node:
+        return Sigmoid(fix_properties=self.get_fix_properties())
 
     def _get_args_repr(self, args):
         return self._get_typical_repr(args, 'before')
@@ -568,6 +642,9 @@ class UnaryMinus(Node):
         self.arity = 1
         self.symb = "u-"
 
+    def create_new_empty_node(self) -> Node:
+        return UnaryMinus(fix_properties=self.get_fix_properties())
+
     def _get_args_repr(self, args):
         return self._get_typical_repr(args, 'before')
 
@@ -583,6 +660,9 @@ class Not(Node):
         super().__init__(fix_properties=fix_properties)
         self.arity = 1
         self.symb = "not"
+
+    def create_new_empty_node(self) -> Node:
+        return Not(fix_properties=self.get_fix_properties())
 
     def _get_args_repr(self, args):
         return self._get_typical_repr(args, 'before')
@@ -600,6 +680,9 @@ class Even(Node):
         self.arity = 1
         self.symb = "even"
 
+    def create_new_empty_node(self) -> Node:
+        return Even(fix_properties=self.get_fix_properties())
+
     def _get_args_repr(self, args):
         return self._get_typical_repr(args, 'before')
 
@@ -615,6 +698,9 @@ class Odd(Node):
         super().__init__(fix_properties=fix_properties)
         self.arity = 1
         self.symb = "odd"
+
+    def create_new_empty_node(self) -> Node:
+        return Odd(fix_properties=self.get_fix_properties())
 
     def _get_args_repr(self, args):
         return self._get_typical_repr(args, 'before')
