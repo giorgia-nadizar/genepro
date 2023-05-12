@@ -62,10 +62,10 @@ class WeakCache:
         return self.get_tot() - self.get_hit()
     
     def hit_ratio(self) -> float:
-        return self.hit_ratio() / float(self.get_tot())
+        return self.get_hit() / float(self.get_tot())
     
     def miss_ratio(self) -> float:
-        return self.miss_ratio() / float(self.get_tot())
+        return self.get_miss() / float(self.get_tot())
     
     def empty_cache(self) -> None:
         self.__cache = WeakKeyDictionary()
