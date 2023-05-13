@@ -102,17 +102,16 @@ def generate_full_random_tree(internal_nodes: list, leaf_nodes: list, max_depth:
 
 
 def __sample_new_node_to_append(internal_nodes: list, leaf_nodes: list, max_depth: int, curr_depth: int = 0, prob_leaf: float = 0.0, ephemeral_func: Callable = None, p: list[float] = None, fixed_constants: list = None) -> Node:
-    if ephemeral_func is None and fixed_constants is None:
+    if fixed_constants is None:
+        fixed_constants = []
+    if ephemeral_func is None and fixed_constants == []:
         leaf_nodes_0 = leaf_nodes
     else:
         if ephemeral_func is not None:
             erc = [Constant(round(ephemeral_func(), 2))]
         else:
             erc = []
-        if fixed_constants is not None:
-            fcn = fixed_constants
-        else:
-            fcn = []
+        fcn = fixed_constants
         single_constant = randc(erc + fcn)
         leaf_nodes_0 = leaf_nodes + single_constant
 
