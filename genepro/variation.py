@@ -181,7 +181,7 @@ def generate_tree_wrt_strategy(internal_nodes: list, leaf_nodes: list, max_depth
     elif generation_strategy == 'full':
         return generate_full_random_tree(internal_nodes=internal_nodes, leaf_nodes=leaf_nodes, max_depth=max_depth, curr_depth=0, ephemeral_func=ephemeral_func, p=p, fixed_constants=fixed_constants)
     elif generation_strategy == 'half':
-        return generate_half_and_half_tree(internal_nodes=internal_nodes, leaf_nodes=leaf_nodes, max_depth=max_depth, curr_depth=0, ephemeral_func=ephemeral_func, p=p, fixed_constants=fixed_constants)
+        return generate_half_and_half_tree(internal_nodes=internal_nodes, leaf_nodes=leaf_nodes, max_depth=max_depth, ephemeral_func=ephemeral_func, p=p, fixed_constants=fixed_constants)
     else:
         raise ValueError(f'The specified random tree generation strategy ({generation_strategy}) is not a valid one.')
 
@@ -234,7 +234,7 @@ def generate_random_forest(internal_nodes: list, leaf_nodes: list, max_depth: in
             current_max_depth: int = max_depth
         else:
             current_max_depth: int = 0
-        f.append(generate_tree_wrt_strategy(internal_nodes, leaf_nodes, max_depth=current_max_depth, generation_strategy=generation_strategy, curr_depth=0, ephemeral_func=ephemeral_func, p=p, fixed_constants=fixed_constants))
+        f.append(generate_tree_wrt_strategy(internal_nodes, leaf_nodes, max_depth=current_max_depth, generation_strategy=generation_strategy, ephemeral_func=ephemeral_func, p=p, fixed_constants=fixed_constants))
     return f
 
 
@@ -384,7 +384,7 @@ def geometric_semantic_single_tree_crossover(tree1: Node, tree2: Node, internal_
     """
 
     r = Sigmoid(fix_properties=fix_properties)
-    r.insert_child(generate_tree_wrt_strategy(internal_nodes=internal_nodes, leaf_nodes=leaf_nodes, curr_depth=0, generation_strategy=generation_strategy, max_depth=max_depth, ephemeral_func=ephemeral_func, p=p, fixed_constants=fixed_constants))
+    r.insert_child(generate_tree_wrt_strategy(internal_nodes=internal_nodes, leaf_nodes=leaf_nodes, generation_strategy=generation_strategy, max_depth=max_depth, ephemeral_func=ephemeral_func, p=p, fixed_constants=fixed_constants))
     
     minus = Minus(fix_properties=fix_properties)
     minus.insert_child(Constant(1.0, fix_properties=fix_properties))
@@ -648,7 +648,7 @@ def subtree_mutation(tree: Node, internal_nodes: list, leaf_nodes: list,
     n = __sample_node(tree, unif_depth)
     # generate a random branch
     branch = generate_tree_wrt_strategy(internal_nodes=internal_nodes, leaf_nodes=leaf_nodes,
-                                  max_depth=max_depth - n.get_depth(), curr_depth=0, generation_strategy=generation_strategy, ephemeral_func=ephemeral_func,
+                                  max_depth=max_depth - n.get_depth(), generation_strategy=generation_strategy, ephemeral_func=ephemeral_func,
                                   p=p, fixed_constants=fixed_constants)
     # swap
     p = n.parent
@@ -732,7 +732,7 @@ def geometric_semantic_tree_mutation(tree: Node, internal_nodes: list, leaf_node
     """
 
     r = Tanh(fix_properties=fix_properties)
-    r.insert_child(generate_tree_wrt_strategy(internal_nodes=internal_nodes, leaf_nodes=leaf_nodes, curr_depth=0, max_depth=max_depth, generation_strategy=generation_strategy, ephemeral_func=ephemeral_func, p=p, fixed_constants=fixed_constants))
+    r.insert_child(generate_tree_wrt_strategy(internal_nodes=internal_nodes, leaf_nodes=leaf_nodes, max_depth=max_depth, generation_strategy=generation_strategy, ephemeral_func=ephemeral_func, p=p, fixed_constants=fixed_constants))
     
     mul = Times(fix_properties=fix_properties)
     mul.insert_child(Constant(m, fix_properties=fix_properties))
