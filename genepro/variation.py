@@ -1,5 +1,4 @@
-import random
-from typing import Callable, List
+from collections.abc import Callable
 
 import numpy as np
 from random import random as randu
@@ -11,10 +10,10 @@ from copy import deepcopy
 
 from genepro.node import Node
 from genepro.node_impl import Constant, Minus, Plus, Sigmoid, Tanh, Pointer, Times
-from genepro.storage import WeakCache
+from genepro.storage import Cache
 
 
-def generate_random_tree(internal_nodes: list, leaf_nodes: list, max_depth: int, curr_depth: int = 0, ephemeral_func: Callable = None, p: List[float] = None):
+def generate_random_tree(internal_nodes: list, leaf_nodes: list, max_depth: int, curr_depth: int = 0, ephemeral_func: Callable = None, p: list[float] = None, fixed_constants: list = None) -> Node:
     """
     Recursive method to generate a random tree containing the given types of nodes and up to the given maximum depth
 
@@ -32,7 +31,8 @@ def generate_random_tree(internal_nodes: list, leaf_nodes: list, max_depth: int,
       lambda expression with no parameters that generates a potentially different random constant every time this method is called, default is None, meaning that no ephemeral constant is generated
     p : list
       probability distribution over internal nodes. Default is None, meaning uniform distribution.
-
+    fixed_constants: list
+      list containing the fixed constants that should eventually be sampled during the generation.
     Returns
     -------
     Node
@@ -49,24 +49,145 @@ def generate_random_tree(internal_nodes: list, leaf_nodes: list, max_depth: int,
     # heuristic to generate a semi-normal centered on relatively large trees
     prob_leaf = (0.01 + (curr_depth / max_depth) ** 3) if max_depth != 0 else 1.0
 
-    if ephemeral_func is None:
-        leaf_nodes_0 = leaf_nodes
-    else:
-        leaf_nodes_0 = leaf_nodes + [Constant(round(ephemeral_func(), 2))]
-
-    if curr_depth == max_depth or randu() < prob_leaf:
-        n = randc(leaf_nodes_0)[0].create_new_empty_node()
-    else:
-        n = randc(internal_nodes, weights=p)[0].create_new_empty_node()
+    n = __sample_new_node_to_append(internal_nodes=internal_nodes, leaf_nodes=leaf_nodes, max_depth=max_depth, curr_depth=curr_depth, prob_leaf=prob_leaf, ephemeral_func=ephemeral_func, p=p, fixed_constants=fixed_constants)
 
     for _ in range(n.arity):
-        c = generate_random_tree(internal_nodes, leaf_nodes, max_depth, curr_depth + 1, ephemeral_func, p)
+        c = generate_random_tree(internal_nodes=internal_nodes, leaf_nodes=leaf_nodes, max_depth=max_depth, curr_depth=curr_depth + 1, ephemeral_func=ephemeral_func, p=p, fixed_constants=fixed_constants)
         n.insert_child(c)
 
     return n
 
 
-def generate_random_forest(internal_nodes: list, leaf_nodes: list, max_depth: int, n_trees: int = None, n_trees_min: int = 2, n_trees_max: int = 10, tree_prob: float = 0.70, ephemeral_func: Callable = None, p: List[float] = None) -> List[Node]:
+def generate_full_random_tree(internal_nodes: list, leaf_nodes: list, max_depth: int, curr_depth: int = 0, ephemeral_func: Callable = None, p: list[float] = None, fixed_constants: list = None) -> Node:
+    """
+    Recursive method to generate a full random tree containing the given types of nodes with the given maximum depth
+
+    Parameters
+    ----------
+    internal_nodes : list
+      list of nodes with arity > 0 (i.e., sub-functions or operations)
+    leaf_nodes : list
+      list of nodes with arity==0 (also called terminals, e.g., features and constants)
+    max_depth : int
+      maximum depth of the tree (recall that the root node has depth 0)
+    curr_depth : int
+      the current depth of the tree under construction, it is set by default to 0 so that calls to `generate_full_random_tree` need not specify it
+    ephemeral_func: Callable
+      lambda expression with no parameters that generates a potentially different random constant every time this method is called, default is None, meaning that no ephemeral constant is generated
+    p : list
+      probability distribution over internal nodes. Default is None, meaning uniform distribution.
+    fixed_constants: list
+      list containing the fixed constants that should eventually be sampled during the generation.
+    Returns
+    -------
+    Node
+      the root node of the generated tree
+    """
+    if max_depth < 0:
+        raise AttributeError(f"Max depth is negative: {max_depth}")
+    if curr_depth < 0:
+        raise AttributeError(f"Curr depth is negative: {curr_depth}")
+    if len(internal_nodes) == 0:
+        raise AttributeError("Internal nodes list is empty.")
+    if len(leaf_nodes) == 0:
+        raise AttributeError("Leaf nodes list is empty.")
+
+    n = __sample_new_node_to_append(internal_nodes=internal_nodes, leaf_nodes=leaf_nodes, max_depth=max_depth, curr_depth=curr_depth, prob_leaf=0.0, ephemeral_func=ephemeral_func, p=p, fixed_constants=fixed_constants)
+
+    for _ in range(n.arity):
+        c = generate_full_random_tree(internal_nodes=internal_nodes, leaf_nodes=leaf_nodes, max_depth=max_depth, curr_depth=curr_depth + 1, ephemeral_func=ephemeral_func, p=p, fixed_constants=fixed_constants)
+        n.insert_child(c)
+
+    return n
+
+
+def __sample_new_node_to_append(internal_nodes: list, leaf_nodes: list, max_depth: int, curr_depth: int = 0, prob_leaf: float = 0.0, ephemeral_func: Callable = None, p: list[float] = None, fixed_constants: list = None) -> Node:
+    if ephemeral_func is None and fixed_constants is None:
+        leaf_nodes_0 = leaf_nodes
+    else:
+        if ephemeral_func is not None:
+            erc = [Constant(round(ephemeral_func(), 2))]
+        else:
+            erc = []
+        if fixed_constants is not None:
+            fcn = fixed_constants
+        else:
+            fcn = []
+        single_constant = randc(erc + fcn)
+        leaf_nodes_0 = leaf_nodes + single_constant
+
+    if curr_depth == max_depth or randu() < prob_leaf:
+        n = randc(leaf_nodes_0)[0].create_new_empty_node()
+    else:
+        n = randc(internal_nodes, weights=p)[0].create_new_empty_node()
+    return n
+
+
+def generate_half_and_half_tree(internal_nodes: list, leaf_nodes: list, max_depth: int, ephemeral_func: Callable = None, p: list[float] = None, fixed_constants: list = None) -> Node:
+    """
+    Calls either generate_random_tree or generate_full_random_tree with probability 0.5
+
+    Parameters
+    ----------
+    internal_nodes : list
+      list of nodes with arity > 0 (i.e., sub-functions or operations)
+    leaf_nodes : list
+      list of nodes with arity==0 (also called terminals, e.g., features and constants)
+    max_depth : int
+      maximum depth of the tree (recall that the root node has depth 0)
+    ephemeral_func: Callable
+      lambda expression with no parameters that generates a potentially different random constant every time this method is called, default is None, meaning that no ephemeral constant is generated
+    p : list
+      probability distribution over internal nodes. Default is None, meaning uniform distribution.
+    fixed_constants: list
+      list containing the fixed constants that should eventually be sampled during the generation.
+    Returns
+    -------
+    Node
+      the root node of the generated tree
+    """
+    if randu() < 0.5:
+        return generate_random_tree(internal_nodes=internal_nodes, leaf_nodes=leaf_nodes, max_depth=max_depth, curr_depth=0, ephemeral_func=ephemeral_func, p=p, fixed_constants=fixed_constants)
+    else:
+        return generate_full_random_tree(internal_nodes=internal_nodes, leaf_nodes=leaf_nodes, max_depth=max_depth, curr_depth=0, ephemeral_func=ephemeral_func, p=p, fixed_constants=fixed_constants)
+
+
+def generate_tree_wrt_strategy(internal_nodes: list, leaf_nodes: list, max_depth: int, generation_strategy: str = 'grow', ephemeral_func: Callable = None, p: list[float] = None, fixed_constants: list = None) -> Node:
+    """
+    Generate a random tree according to the specified strategy ('grow', 'full', 'half').
+
+    Parameters
+    ----------
+    internal_nodes : list
+      list of nodes with arity > 0 (i.e., sub-functions or operations)
+    leaf_nodes : list
+      list of nodes with arity==0 (also called terminals, e.g., features and constants)
+    max_depth : int
+      maximum depth of the tree (recall that the root node has depth 0)
+    generation_strategy : str
+      generation strategy to be leveraged to generate the random tree
+    ephemeral_func: Callable
+      lambda expression with no parameters that generates a potentially different random constant every time this method is called, default is None, meaning that no ephemeral constant is generated
+    p : list
+      probability distribution over internal nodes. Default is None, meaning uniform distribution.
+    fixed_constants: list
+      list containing the fixed constants that should eventually be sampled during the generation.
+    Returns
+    -------
+    Node
+      the root node of the generated tree
+    """
+    if generation_strategy == 'grow':
+        return generate_random_tree(internal_nodes=internal_nodes, leaf_nodes=leaf_nodes, max_depth=max_depth, curr_depth=0, ephemeral_func=ephemeral_func, p=p, fixed_constants=fixed_constants)
+    elif generation_strategy == 'full':
+        return generate_full_random_tree(internal_nodes=internal_nodes, leaf_nodes=leaf_nodes, max_depth=max_depth, curr_depth=0, ephemeral_func=ephemeral_func, p=p, fixed_constants=fixed_constants)
+    elif generation_strategy == 'half':
+        return generate_half_and_half_tree(internal_nodes=internal_nodes, leaf_nodes=leaf_nodes, max_depth=max_depth, curr_depth=0, ephemeral_func=ephemeral_func, p=p, fixed_constants=fixed_constants)
+    else:
+        raise ValueError(f'The specified random tree generation strategy ({generation_strategy}) is not a valid one.')
+
+
+def generate_random_forest(internal_nodes: list, leaf_nodes: list, max_depth: int, generation_strategy: str = 'grow', n_trees: int = None, n_trees_min: int = 2, n_trees_max: int = 10, tree_prob: float = 0.70, ephemeral_func: Callable = None, p: list[float] = None, fixed_constants: list = None) -> list[Node]:
     """
     Recursive method to generate a random tree containing the given types of nodes and up to the given maximum depth
 
@@ -78,6 +199,8 @@ def generate_random_forest(internal_nodes: list, leaf_nodes: list, max_depth: in
       list of nodes with arity==0 (also called terminals, e.g., features and constants)
     max_depth : int
       maximum depth of the tree (recall that the root node has depth 0)
+    generation_strategy : str
+      generation strategy to be leveraged to generate the random tree
     n_trees : int
       number of trees to generate. If None, this value is uniformly sampled between n_trees_min and n_trees_max (both included)
     n_trees_min : int
@@ -90,6 +213,8 @@ def generate_random_forest(internal_nodes: list, leaf_nodes: list, max_depth: in
       lambda expression with no parameters that generates a potentially different random constant every time this method is called, default is None, meaning that no ephemeral constant is generated
     p : list
       probability distribution over internal nodes. Default is None, meaning uniform distribution.
+    fixed_constants: list
+      list containing the fixed constants that should eventually be sampled during the generation.
 
     Returns
     -------
@@ -100,17 +225,17 @@ def generate_random_forest(internal_nodes: list, leaf_nodes: list, max_depth: in
         raise AttributeError(f"Number of trees to generate must be at least 2. Specified {n_trees} instead.")
     if not (0 <= tree_prob <= 1):
         raise AttributeError(f"Tree prob must be a float between 0 and 1. Specified {tree_prob} instead.")
-    f: List[Node] = []
+    f: list[Node] = []
     if n_trees is None:
         if n_trees_min > n_trees_max:
             raise AttributeError(f"n_trees_min must not be greater than n_trees_max. Here n_trees_min is {n_trees_min} and n_trees_max is {n_trees_max}.")
-        n_trees: int = randi(low=n_trees_min, high=n_trees_max + 1)
+        n_trees: int = randi(low=n_trees_min, high=n_trees_max)
     for _ in range(n_trees):
         if randu() < tree_prob:
             current_max_depth: int = max_depth
         else:
             current_max_depth: int = 0
-        f.append(generate_random_tree(internal_nodes, leaf_nodes, max_depth=current_max_depth, curr_depth=0, ephemeral_func=ephemeral_func, p=p))
+        f.append(generate_tree_wrt_strategy(internal_nodes, leaf_nodes, max_depth=current_max_depth, generation_strategy=generation_strategy, curr_depth=0, ephemeral_func=ephemeral_func, p=p, fixed_constants=fixed_constants))
     return f
 
 
@@ -187,7 +312,7 @@ def safe_subtree_crossover_two_children(tree1: Node, tree2: Node, unif_depth: in
     child1_height = child1.get_height()
     candidates = []
     __find_cuts_subtree_crossover_two_children(tree2, max_depth, tree1_mutated_branch_max_depth, child1_height, candidates)
-    child2 = randc(candidates)
+    child2 = randc(candidates)[0]
 
     # swap
     parent1 = child1.parent
@@ -213,7 +338,7 @@ def safe_subtree_crossover_two_children(tree1: Node, tree2: Node, unif_depth: in
     return tree1, tree2
 
 
-def __find_cuts_subtree_crossover_two_children(tree: Node, max_depth: int, tree1_mutated_branch_max_depth: int, child1_height: int, candidates: List[Node]) -> None:
+def __find_cuts_subtree_crossover_two_children(tree: Node, max_depth: int, tree1_mutated_branch_max_depth: int, child1_height: int, candidates: list[Node]) -> None:
     tree2_mutated_branch_max_depth = max_depth - tree.get_depth()
     child2_height = tree.get_height()
     if child2_height <= tree1_mutated_branch_max_depth and child1_height <= tree2_mutated_branch_max_depth:
@@ -222,7 +347,7 @@ def __find_cuts_subtree_crossover_two_children(tree: Node, max_depth: int, tree1
         __find_cuts_subtree_crossover_two_children(tree.get_child(i), max_depth, tree1_mutated_branch_max_depth, child1_height, candidates)
 
 
-def geometric_semantic_single_tree_crossover(tree1: Node, tree2: Node, internal_nodes: list[Node], leaf_nodes: list[Node], max_depth: int = 4, ephemeral_func: Callable = None, p: List[float] = None, cache: WeakCache = None, store_in_cache: bool = False, fix_properties: bool = False) -> Node:
+def geometric_semantic_single_tree_crossover(tree1: Node, tree2: Node, internal_nodes: list[Node], leaf_nodes: list[Node], max_depth: int = 4, generation_strategy: str = 'grow', ephemeral_func: Callable = None, p: list[float] = None, fixed_constants: list = None, cache: Cache = None, store_in_cache: bool = False, fix_properties: bool = False) -> Node:
     """
     Performs geometric semantic crossover and returns the resulting offspring without changing the original trees
 
@@ -238,11 +363,15 @@ def geometric_semantic_single_tree_crossover(tree1: Node, tree2: Node, internal_
       list of possible leaf nodes to generate the random tree
     max_depth : int, optional
       the maximal depth of the generated random tree (default is 4)
+    generation_strategy : str
+      generation strategy to be leveraged to generate the random tree
     ephemeral_func: Callable
       lambda expression with no parameters that generates a potentially different random constant every time this method is called, default is None, meaning that no ephemeral constant is generated
     p : list
       probability distribution over internal nodes. Default is None, meaning uniform distribution.
-    cache : WeakCache
+    fixed_constants: list
+      list containing the fixed constants that should eventually be sampled during the generation.
+    cache : Cache
       cache that stores results for trees that have been seen during the evolution
     store_in_cache : bool
       if True, it uses the cache dictionary to store already computed results, otherwise, it computes every time the results of the whole tree
@@ -256,7 +385,7 @@ def geometric_semantic_single_tree_crossover(tree1: Node, tree2: Node, internal_
     """
 
     r = Sigmoid(fix_properties=fix_properties)
-    r.insert_child(generate_random_tree(internal_nodes=internal_nodes, leaf_nodes=leaf_nodes, curr_depth=0, max_depth=max_depth, ephemeral_func=ephemeral_func, p=p))
+    r.insert_child(generate_tree_wrt_strategy(internal_nodes=internal_nodes, leaf_nodes=leaf_nodes, curr_depth=0, generation_strategy=generation_strategy, max_depth=max_depth, ephemeral_func=ephemeral_func, p=p, fixed_constants=fixed_constants))
     
     minus = Minus(fix_properties=fix_properties)
     minus.insert_child(Constant(1.0, fix_properties=fix_properties))
@@ -330,7 +459,7 @@ def node_level_crossover(tree: Node, donor: Node, same_depth: bool = False, prob
             if compatible_nodes is None or len(compatible_nodes) == 0:
                 continue
             # swap
-            m = deepcopy(randc(compatible_nodes))
+            m = deepcopy(randc(compatible_nodes)[0])
             m.parent = None
             m.child_id = -1
             m._children = list()
@@ -404,7 +533,7 @@ def safe_node_level_crossover_two_children(tree1: Node, tree2: Node, same_depth:
                 continue
 
             # swap
-            child2 = randc(compatible_nodes)
+            child2 = randc(compatible_nodes)[0]
 
             parent1 = child1.parent
             parent2 = child2.parent
@@ -440,15 +569,15 @@ def safe_node_level_crossover_two_children(tree1: Node, tree2: Node, same_depth:
     return tree1, tree2
 
 
-def safe_subforest_one_point_crossover_two_children(forest: List[Node], donor: List[Node], max_length: int = None) -> tuple[List[Node], List[Node]]:
+def safe_subforest_one_point_crossover_two_children(forest: list[Node], donor: list[Node], max_length: int = None) -> tuple[list[Node], list[Node]]:
     """
     Performs subtree crossover and returns the resulting offsprings without changing the original trees
 
     Parameters
     ----------
-    forest : List[Node]
+    forest : list[Node]
       the first list of trees participating in the crossover
-    donor : List[Node]
+    donor : list[Node]
       the second list of trees participating in the crossover
     max_length : int
       the maximal allowed length of an offspring. If None, the resulting forests have no limit in length.
@@ -459,29 +588,29 @@ def safe_subforest_one_point_crossover_two_children(forest: List[Node], donor: L
     """
     if max_length is not None and max_length < 2:
         raise AttributeError(f"Max length must be greater than 1. Specified {max_length} instead.")
-    forest_1: List[Node] = [deepcopy(x) for x in forest]
-    forest_2: List[Node] = [deepcopy(x) for x in donor]
+    forest_1: list[Node] = [deepcopy(x) for x in forest]
+    forest_2: list[Node] = [deepcopy(x) for x in donor]
     if len(forest_2) < len(forest_1):
         forest_2, forest_1 = forest_1, forest_2
-    cut_index: int = randc(list(range(len(forest_1))))
-    child_1: List[Node] = forest_1[:cut_index] + forest_2[cut_index:]
-    child_2: List[Node] = forest_2[:cut_index] + forest_1[cut_index:]
+    cut_index: int = randc(list(range(len(forest_1))))[0]
+    child_1: list[Node] = forest_1[:cut_index] + forest_2[cut_index:]
+    child_2: list[Node] = forest_2[:cut_index] + forest_1[cut_index:]
     if max_length is None:
         return child_1, child_2
     else:
         if len(child_1) > max_length:
-            possible_cuts: List[int] = list(range(len(child_1) - max_length + 1))
-            cut: int = randc(possible_cuts)
+            possible_cuts: list[int] = list(range(len(child_1) - max_length + 1))
+            cut: int = randc(possible_cuts)[0]
             child_1 = child_1[cut:(cut + max_length)]
         if len(child_2) > max_length:
-            possible_cuts: List[int] = list(range(len(child_2) - max_length + 1))
-            cut: int = randc(possible_cuts)
+            possible_cuts: list[int] = list(range(len(child_2) - max_length + 1))
+            cut: int = randc(possible_cuts)[0]
             child_2 = child_2[cut:(cut + max_length)]
         return child_1, child_2
 
 
 def subtree_mutation(tree: Node, internal_nodes: list, leaf_nodes: list,
-                     unif_depth: bool = True, max_depth: int = 4, ephemeral_func: Callable = None, p: List[float] = None) -> Node:
+                     unif_depth: bool = True, max_depth: int = 4, generation_strategy: str = 'grow', ephemeral_func: Callable = None, p: list[float] = None, fixed_constants: list = None) -> Node:
     """
     Performs subtree mutation and returns the resulting offspring
 
@@ -497,10 +626,14 @@ def subtree_mutation(tree: Node, internal_nodes: list, leaf_nodes: list,
       whether uniform random depth sampling is used to pick the root of the subtree to mutate (default is True)
     max_depth : int, optional
       the maximal depth of the offspring (default is 4)
+    generation_strategy : str
+      generation strategy to be leveraged to generate the random tree
     ephemeral_func: Callable
       lambda expression with no parameters that generates a potentially different random constant every time this method is called, default is None, meaning that no ephemeral constant is generated
     p : list
       probability distribution over internal nodes. Default is None, meaning uniform distribution.
+    fixed_constants: list
+      list containing the fixed constants that should eventually be sampled during the generation.
 
     Returns
     -------
@@ -515,9 +648,9 @@ def subtree_mutation(tree: Node, internal_nodes: list, leaf_nodes: list,
     # pick a subtree to replace
     n = __sample_node(tree, unif_depth)
     # generate a random branch
-    branch = generate_random_tree(internal_nodes=internal_nodes, leaf_nodes=leaf_nodes,
-                                  max_depth=max_depth - n.get_depth(), curr_depth=0, ephemeral_func=ephemeral_func,
-                                  p=p)
+    branch = generate_tree_wrt_strategy(internal_nodes=internal_nodes, leaf_nodes=leaf_nodes,
+                                  max_depth=max_depth - n.get_depth(), curr_depth=0, generation_strategy=generation_strategy, ephemeral_func=ephemeral_func,
+                                  p=p, fixed_constants=fixed_constants)
     # swap
     p = n.parent
     if p:
@@ -528,7 +661,7 @@ def subtree_mutation(tree: Node, internal_nodes: list, leaf_nodes: list,
 
 
 def safe_subtree_mutation(tree: Node, internal_nodes: list, leaf_nodes: list,
-                          unif_depth: bool = True, max_depth: int = 4, ephemeral_func: Callable = None, p: List[float] = None) -> Node:
+                          unif_depth: bool = True, max_depth: int = 4, generation_strategy: str = 'grow', ephemeral_func: Callable = None, p: list[float] = None, fixed_constants: list = None) -> Node:
     """
     Performs subtree mutation and returns the resulting offspring.
     Differs from subtree mutation as it is not done in place.
@@ -545,20 +678,24 @@ def safe_subtree_mutation(tree: Node, internal_nodes: list, leaf_nodes: list,
       whether uniform random depth sampling is used to pick the root of the subtree to mutate (default is True)
     max_depth : int, optional
       the maximal depth of the offspring (default is 4)
+    generation_strategy : str
+      generation strategy to be leveraged to generate the random tree
     ephemeral_func: Callable
       lambda expression with no parameters that generates a potentially different random constant every time this method is called, default is None, meaning that no ephemeral constant is generated
     p : list
       probability distribution over internal nodes. Default is None, meaning uniform distribution.
+    fixed_constants: list
+      list containing the fixed constants that should eventually be sampled during the generation.
 
     Returns
     -------
     Node
       the tree after mutation (warning: replace the original tree with the returned one to avoid undefined behavior)
     """
-    return subtree_mutation(deepcopy(tree), internal_nodes, leaf_nodes, unif_depth=unif_depth, max_depth=max_depth, ephemeral_func=ephemeral_func, p=p)
+    return subtree_mutation(deepcopy(tree), internal_nodes, leaf_nodes, unif_depth=unif_depth, max_depth=max_depth, generation_strategy=generation_strategy, ephemeral_func=ephemeral_func, p=p, fixed_constants=fixed_constants)
 
 
-def geometric_semantic_tree_mutation(tree: Node, internal_nodes: list, leaf_nodes: list, max_depth: int = 4, ephemeral_func: Callable = None, p: List[float] = None, m: float = 0.5, cache: WeakCache = None, store_in_cache: bool = False, fix_properties: bool = False) -> Node:
+def geometric_semantic_tree_mutation(tree: Node, internal_nodes: list, leaf_nodes: list, max_depth: int = 4, generation_strategy: str = 'grow', ephemeral_func: Callable = None, p: list[float] = None, fixed_constants: list = None, m: float = 0.5, cache: Cache = None, store_in_cache: bool = False, fix_properties: bool = False) -> Node:
     """
     Performs geometric semantic tree mutation. Pointers are used to avoid generation very large trees to store in memory.
 
@@ -572,13 +709,17 @@ def geometric_semantic_tree_mutation(tree: Node, internal_nodes: list, leaf_node
       list of possible leaf nodes to generate the random tree
     max_depth : int, optional
       the maximal depth of the generated random tree (default is 4)
+    generation_strategy : str
+      generation strategy to be leveraged to generate the random tree
     ephemeral_func: Callable
       lambda expression with no parameters that generates a potentially different random constant every time this method is called, default is None, meaning that no ephemeral constant is generated
     p : list
       probability distribution over internal nodes. Default is None, meaning uniform distribution.
+    fixed_constants: list
+      list containing the fixed constants that should eventually be sampled during the generation.
     m : float
       a coefficient in the geometric semantic mutation
-    cache : WeakCache
+    cache : Cache
       cache that stores results for trees that have been seen during the evolution
     store_in_cache : bool
       if True, it uses the cache dictionary to store already computed results, otherwise, it computes every time the results of the whole tree
@@ -592,7 +733,7 @@ def geometric_semantic_tree_mutation(tree: Node, internal_nodes: list, leaf_node
     """
 
     r = Tanh(fix_properties=fix_properties)
-    r.insert_child(generate_random_tree(internal_nodes=internal_nodes, leaf_nodes=leaf_nodes, curr_depth=0, max_depth=max_depth, ephemeral_func=ephemeral_func, p=p))
+    r.insert_child(generate_tree_wrt_strategy(internal_nodes=internal_nodes, leaf_nodes=leaf_nodes, curr_depth=0, max_depth=max_depth, generation_strategy=generation_strategy, ephemeral_func=ephemeral_func, p=p, fixed_constants=fixed_constants))
     
     mul = Times(fix_properties=fix_properties)
     mul.insert_child(Constant(m, fix_properties=fix_properties))
@@ -604,15 +745,15 @@ def geometric_semantic_tree_mutation(tree: Node, internal_nodes: list, leaf_node
     return plus
 
 
-def safe_subforest_mutation(forest: List[Node], internal_nodes: list, leaf_nodes: list,
-                            unif_depth: bool = True, max_depth: int = 4, ephemeral_func: Callable = None, p: List[float] = None) -> List[Node]:
+def safe_subforest_mutation(forest: list[Node], internal_nodes: list, leaf_nodes: list,
+                            unif_depth: bool = True, max_depth: int = 4, generation_strategy: str = 'grow', ephemeral_func: Callable = None, p: list[float] = None, fixed_constants: list = None) -> list[Node]:
     """
     Performs subforest mutation and returns the resulting offspring. The mutation is applied at each tree in the forest
     with probability 1/len(forest). The single tree mutation is performed by calling subtree_mutation method.
 
     Parameters
     ----------
-    forest : List[Node]
+    forest : list[Node]
       the forest that participates and is modified by crossover
     internal_nodes : list
       list of possible internal nodes to generate the mutated branch
@@ -622,21 +763,25 @@ def safe_subforest_mutation(forest: List[Node], internal_nodes: list, leaf_nodes
       whether uniform random depth sampling is used to pick the root of the subtree to mutate (default is True)
     max_depth : int, optional
       the maximal depth of the offspring (default is 4)
+    generation_strategy : str
+      generation strategy to be leveraged to generate the random tree
     ephemeral_func: Callable
       lambda expression with no parameters that generates a potentially different random constant every time this method is called, default is None, meaning that no ephemeral constant is generated
     p : list
       probability distribution over internal nodes. Default is None, meaning uniform distribution.
+    fixed_constants: list
+      list containing the fixed constants that should eventually be sampled during the generation.
 
     Returns
     -------
-    List[Node]
+    list[Node]
       the forest after mutation (warning: replace the original tree with the returned one to avoid undefined behavior)
     """
-    f: List[Node] = []
+    f: list[Node] = []
     mutation_prob: float = 1.0/float(len(forest))
     for n in forest:
         if randu() < mutation_prob:
-            f.append(subtree_mutation(deepcopy(n), internal_nodes, leaf_nodes, unif_depth=unif_depth, max_depth=max_depth, ephemeral_func=ephemeral_func, p=p))
+            f.append(subtree_mutation(deepcopy(n), internal_nodes, leaf_nodes, unif_depth=unif_depth, max_depth=max_depth, generation_strategy=generation_strategy, ephemeral_func=ephemeral_func, p=p, fixed_constants=fixed_constants))
         else:
             f.append(deepcopy(n))
     return f
@@ -713,7 +858,7 @@ def __sample_node(tree: Node, unif_depth: bool = True) -> Node:
     nodes = tree.get_subtree()
     if unif_depth:
         nodes = __sample_uniform_depth_nodes(nodes)
-    return randc(nodes)
+    return randc(nodes)[0]
 
 
 def __sample_uniform_depth_nodes(nodes: list) -> list:
@@ -732,7 +877,7 @@ def __sample_uniform_depth_nodes(nodes: list) -> list:
     """
     depths = [n.get_depth() for n in nodes]
     possible_depths = list(set(depths))
-    d = randc(possible_depths)
+    d = randc(possible_depths)[0]
     return [n for i, n in enumerate(nodes) if depths[i] == d]
 
 
@@ -782,7 +927,7 @@ def generate_offspring(parent: Node,
         var_op = all_var_ops[i]
         offspring = __undergo_variation_operator(var_op, offspring,
                                                  crossovers, mutations, coeff_opts,
-                                                 randc(donors), internal_nodes, leaf_nodes)
+                                                 randc(donors)[0], internal_nodes, leaf_nodes)
         # check offspring meets constraints, else revert to backup
         if not __check_tree_meets_all_constraints(offspring, constraints):
             # revert to backup

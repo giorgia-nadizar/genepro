@@ -1,6 +1,6 @@
 import numpy as np
 from genepro.node import Node
-from genepro.storage import WeakCache
+from genepro.storage import Cache
 
 
 class Plus(Node):
@@ -425,14 +425,14 @@ class Constant(Node):
 class Pointer(Node):
     def __init__(self,
                  value: Node,
-                 cache: WeakCache = None,
+                 cache: Cache = None,
                  store_in_cache: bool = False,
                  fix_properties: bool = False
                  ) -> None:
         super().__init__(fix_properties=fix_properties)
         if value is None:
             raise AttributeError("The value provided in the constructor of Pointer is None.")
-        self.__cache: WeakCache = cache
+        self.__cache: Cache = cache
         self.__store_in_cache: bool = store_in_cache
         self.arity = 0
         self.__value = value

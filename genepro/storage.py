@@ -42,12 +42,15 @@ class Storage(Generic[T]):
         return list(self.__cache.keys())
 
 
-class WeakCache:
-    def __init__(self) -> None:
+class Cache(Generic[K, V]):
+    def __init__(self,
+                 cache: dict[K, V],
+                 ) -> None:
         super().__init__()
-        self.__cache: WeakKeyDictionary = WeakKeyDictionary()
+        self.__cache: dict[K, V] = cache
+        self.__miss: int = 0
         self.__hit: int = 0
-        self.__tot: int = 0
+        self.__is_enabled: bool = True
 
     def contains(self, key: K) -> bool:
         return key in self.__cache
@@ -56,10 +59,10 @@ class WeakCache:
         return self.__hit
 
     def get_tot(self) -> int:
-        return self.__tot
+        return self.get_hit() + self.get_miss()
 
     def get_miss(self) -> int:
-        return self.get_tot() - self.get_hit()
+        return self.__miss
     
     def hit_ratio(self) -> float:
         return self.get_hit() / float(self.get_tot())
@@ -68,8 +71,8 @@ class WeakCache:
         return self.get_miss() / float(self.get_tot())
     
     def empty_cache(self) -> None:
-        self.__cache = WeakKeyDictionary()
-        self.__tot = 0
+        self.__cache.clear()
+        self.__miss = 0
         self.__hit = 0
 
     def cache_size(self) -> int:
@@ -79,12 +82,27 @@ class WeakCache:
         return sorted(list(self.__cache.keys()), key=lambda x: hash(x))
     
     def get(self, key: K) -> V:
-        self.__tot += 1
-        if self.contains(key):
-            self.__hit += 1
-            return self.__cache[key]
+        if self.is_enabled():
+            if self.contains(key):
+                self.__hit += 1
+                return self.__cache[key]
+            else:
+                self.__miss += 1
         return None
 
     def set(self, key: K, value: V) -> None:
-        self.__cache[key] = value
+        if self.is_enabled():
+            self.__cache[key] = value
+
+    def enable(self) -> None:
+        self.__is_enabled = True
+
+    def disable(self) -> None:
+        self.__is_enabled = False
+
+    def is_enabled(self) -> bool:
+        return self.__is_enabled
+
+    def remove(self, key: K) -> None:
+        del self.__cache[key]
     
