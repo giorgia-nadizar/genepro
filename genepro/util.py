@@ -7,7 +7,7 @@ import re
 
 from genepro.node import Node
 from genepro import node_impl
-from genepro.node_impl import Feature, Constant, Pointer
+from genepro.node_impl import Feature, Constant, Pointer, SemanticVector, RandomGaussianConstant
 
 
 def compute_linear_scaling(y, p):
@@ -53,7 +53,7 @@ def tree_from_prefix_repr(prefix_repr: str) -> Node:
     possible_nodes = list()
     for node_cls in node_classes:
         # handle Features and Constants separetely (also, avoid base class Node)
-        if node_cls == Node or node_cls == Feature or node_cls == Constant or node_cls == Pointer:
+        if node_cls == Node or node_cls == Feature or node_cls == Constant or node_cls == Pointer or node_cls == SemanticVector or node_cls == RandomGaussianConstant:
             continue
         node_obj = node_cls()
         possible_nodes.append(node_obj)
