@@ -65,9 +65,13 @@ class Cache(Generic[K, V]):
         return self.__miss
     
     def hit_ratio(self) -> float:
+        if self.get_tot() == 0:
+            return 0
         return self.get_hit() / float(self.get_tot())
     
     def miss_ratio(self) -> float:
+        if self.get_tot() == 0:
+            return 0
         return self.get_miss() / float(self.get_tot())
     
     def empty_cache(self) -> None:
@@ -85,7 +89,8 @@ class Cache(Generic[K, V]):
         if self.is_enabled():
             if self.contains(key):
                 self.__hit += 1
-                return self.__cache[key]
+                val: V = self.__cache[key]
+                return val
             else:
                 self.__miss += 1
         return None
@@ -104,5 +109,6 @@ class Cache(Generic[K, V]):
         return self.__is_enabled
 
     def remove(self, key: K) -> None:
-        del self.__cache[key]
+        if self.contains(key):
+            del self.__cache[key]
     
