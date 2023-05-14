@@ -393,17 +393,28 @@ class Feature(Node):
 class Constant(Node):
     def __init__(self,
                  value: float,
-                 fix_properties: bool = False
+                 fix_properties: bool = False,
+                 known_n_samples: int = None
                  ) -> None:
         super().__init__(fix_properties=fix_properties)
         if value is None:
             raise AttributeError("The value provided in the constructor of Constant is None.")
+        if known_n_samples is not None and known_n_samples < 1:
+            raise ValueError(f'If provided, known_n_samples must be at least 1, found {known_n_samples} instead.')
         self.arity = 0
         self.__value = value
         self.symb = str(value)
+        self.__repeated_value = None
+        self.__known_n_samples = known_n_samples
+        if self.__known_n_samples is not None:
+            self.__repeated_value = np.repeat(self.__value, self.__known_n_samples)
 
     def create_new_empty_node(self) -> Node:
-        return Constant(value=self.__value, fix_properties=self.get_fix_properties())
+        return Constant(value=self.__value, known_n_samples=self.__known_n_samples, fix_properties=self.get_fix_properties())
+
+    def nullify_known_n_samples(self):
+        self.__repeated_value = None
+        self.__known_n_samples = None
 
     def get_value(self):
         return self.__value
@@ -411,16 +422,18 @@ class Constant(Node):
     def set_value(self, value: float):
         self.__value = value
         self.symb = str(value)
+        if self.__known_n_samples is not None:
+            self.__repeated_value = np.repeat(self.__value, self.__known_n_samples)
 
     def _get_args_repr(self, args):
-        # make sure it is initialized
-        self.get_value()
         return self.symb
 
     def get_output(self, X: np.ndarray) -> np.ndarray:
-        # make sure it is initialized
-        v = self.get_value()
-        return np.repeat(v, X.shape[0])
+        if self.__known_n_samples is None:
+            return np.repeat(self.__value, X.shape[0])
+        if X.shape[0] == self.__known_n_samples:
+            return self.__repeated_value
+        return np.repeat(self.__value, X.shape[0])
 
 
 class RandomGaussianConstant(Node):

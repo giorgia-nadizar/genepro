@@ -102,23 +102,27 @@ def generate_full_random_tree(internal_nodes: list, leaf_nodes: list, max_depth:
 
 
 def __sample_new_node_to_append(internal_nodes: list, leaf_nodes: list, max_depth: int, curr_depth: int = 0, prob_leaf: float = 0.0, ephemeral_func: Callable = None, p: list[float] = None, fixed_constants: list = None) -> Node:
-    if fixed_constants is None:
-        fixed_constants = []
-    if ephemeral_func is None and fixed_constants == []:
-        leaf_nodes_0 = leaf_nodes
-    else:
-        if ephemeral_func is not None:
-            erc = [Constant(round(ephemeral_func(), 2))]
-        else:
-            erc = []
-        fcn = fixed_constants
-        single_constant = randc(erc + fcn)
-        leaf_nodes_0 = leaf_nodes + single_constant
-
     if curr_depth == max_depth or randu() < prob_leaf:
-        n = randc(leaf_nodes_0)[0].create_new_empty_node()
+        if fixed_constants is None:
+            fixed_constants = []
+        if ephemeral_func is None and fixed_constants == []:
+            leaf_nodes_0 = leaf_nodes
+            n = leaf_nodes_0[int(randu()*len(leaf_nodes_0))].create_new_empty_node()
+        else:
+            leaf_nodes_0 = leaf_nodes + [None]
+            n = leaf_nodes_0[int(randu()*len(leaf_nodes_0))]
+            if n is not None:
+                n = n.create_new_empty_node()
+            else:
+                if ephemeral_func is not None:
+                    erc = [Constant(round(ephemeral_func(), 2))]
+                else:
+                    erc = []
+                erc_fixed_constants_0 = erc + fixed_constants
+                n = erc_fixed_constants_0[int(randu()*len(erc_fixed_constants_0))].create_new_empty_node()
     else:
-        n = randc(internal_nodes, weights=p)[0].create_new_empty_node()
+        #n = randc(internal_nodes, weights=p)[0].create_new_empty_node()
+        n = internal_nodes[int(randu()*len(internal_nodes))].create_new_empty_node()
     return n
 
 
