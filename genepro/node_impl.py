@@ -409,8 +409,14 @@ class Constant(Node):
         if self.__known_n_samples is not None:
             self.__repeated_value = np.repeat(self.__value, self.__known_n_samples)
 
+    def _set_repeated_value(self, repeated_value: np.ndarray = None, known_n_samples: int = None):
+        self.__repeated_value = repeated_value
+        self.__known_n_samples = known_n_samples
+
     def create_new_empty_node(self) -> Node:
-        return Constant(value=self.__value, known_n_samples=self.__known_n_samples, fix_properties=self.get_fix_properties())
+        c = Constant(value=self.__value, fix_properties=self.get_fix_properties())
+        c._set_repeated_value(repeated_value=self.__repeated_value, known_n_samples=self.__known_n_samples)
+        return c
 
     def nullify_known_n_samples(self):
         self.__repeated_value = None

@@ -9,7 +9,7 @@ from numpy.random import shuffle
 from copy import deepcopy
 
 from genepro.node import Node
-from genepro.node_impl import Constant, Minus, Plus, Sigmoid, Tanh, Pointer, Times
+from genepro.node_impl import Constant, Minus, Plus, Sigmoid, Pointer, Times
 from genepro.storage import Cache
 
 
@@ -121,8 +121,13 @@ def __sample_new_node_to_append(internal_nodes: list, leaf_nodes: list, max_dept
                 erc_fixed_constants_0 = erc + fixed_constants
                 n = erc_fixed_constants_0[int(randu()*len(erc_fixed_constants_0))].create_new_empty_node()
     else:
-        #n = randc(internal_nodes, weights=p)[0].create_new_empty_node()
-        n = internal_nodes[int(randu()*len(internal_nodes))].create_new_empty_node()
+        if p is None:
+            p = []
+        if p == []:
+            n = internal_nodes[int(randu()*len(internal_nodes))].create_new_empty_node()
+        else:
+            n = randc(internal_nodes, weights=p)[0].create_new_empty_node()
+        
     return n
 
 
@@ -315,7 +320,7 @@ def safe_subtree_crossover_two_children(tree1: Node, tree2: Node, unif_depth: in
     child1_height = child1.get_height()
     candidates = []
     __find_cuts_subtree_crossover_two_children(tree2, max_depth, tree1_mutated_branch_max_depth, child1_height, candidates)
-    child2 = randc(candidates)[0]
+    child2 = candidates[int(randu()*len(candidates))]
 
     # swap
     parent1 = child1.parent
@@ -462,7 +467,7 @@ def node_level_crossover(tree: Node, donor: Node, same_depth: bool = False, prob
             if compatible_nodes is None or len(compatible_nodes) == 0:
                 continue
             # swap
-            m = deepcopy(randc(compatible_nodes)[0])
+            m = deepcopy(compatible_nodes[int(randu()*len(compatible_nodes))])
             m.parent = None
             m.child_id = -1
             m._children = list()
@@ -536,7 +541,7 @@ def safe_node_level_crossover_two_children(tree1: Node, tree2: Node, same_depth:
                 continue
 
             # swap
-            child2 = randc(compatible_nodes)[0]
+            child2 = compatible_nodes[int(randu()*len(compatible_nodes))]
 
             parent1 = child1.parent
             parent2 = child2.parent
@@ -595,7 +600,7 @@ def safe_subforest_one_point_crossover_two_children(forest: list[Node], donor: l
     forest_2: list[Node] = [deepcopy(x) for x in donor]
     if len(forest_2) < len(forest_1):
         forest_2, forest_1 = forest_1, forest_2
-    cut_index: int = randc(list(range(len(forest_1))))[0]
+    cut_index: int = int(randu()*len(forest_1))
     child_1: list[Node] = forest_1[:cut_index] + forest_2[cut_index:]
     child_2: list[Node] = forest_2[:cut_index] + forest_1[cut_index:]
     if max_length is None:
@@ -603,11 +608,11 @@ def safe_subforest_one_point_crossover_two_children(forest: list[Node], donor: l
     else:
         if len(child_1) > max_length:
             possible_cuts: list[int] = list(range(len(child_1) - max_length + 1))
-            cut: int = randc(possible_cuts)[0]
+            cut: int = possible_cuts[int(randu()*len(possible_cuts))]
             child_1 = child_1[cut:(cut + max_length)]
         if len(child_2) > max_length:
             possible_cuts: list[int] = list(range(len(child_2) - max_length + 1))
-            cut: int = randc(possible_cuts)[0]
+            cut: int = possible_cuts[int(randu()*len(possible_cuts))]
             child_2 = child_2[cut:(cut + max_length)]
         return child_1, child_2
 
@@ -735,12 +740,19 @@ def geometric_semantic_tree_mutation(tree: Node, internal_nodes: list, leaf_node
       the tree after mutation (warning: replace the original tree with the returned one to avoid undefined behavior)
     """
 
-    r = Tanh(fix_properties=fix_properties)
-    r.insert_child(generate_tree_wrt_strategy(internal_nodes=internal_nodes, leaf_nodes=leaf_nodes, max_depth=max_depth, generation_strategy=generation_strategy, ephemeral_func=ephemeral_func, p=p, fixed_constants=fixed_constants))
+    r_1 = Sigmoid(fix_properties=fix_properties)
+    r_1.insert_child(generate_tree_wrt_strategy(internal_nodes=internal_nodes, leaf_nodes=leaf_nodes, max_depth=max_depth, generation_strategy=generation_strategy, ephemeral_func=ephemeral_func, p=p, fixed_constants=fixed_constants))
     
+    r_2 = Sigmoid(fix_properties=fix_properties)
+    r_2.insert_child(generate_tree_wrt_strategy(internal_nodes=internal_nodes, leaf_nodes=leaf_nodes, max_depth=max_depth, generation_strategy=generation_strategy, ephemeral_func=ephemeral_func, p=p, fixed_constants=fixed_constants))
+    
+    minus = Minus(fix_properties=fix_properties)
+    minus.insert_child(r_1)
+    minus.insert_child(r_2)
+
     mul = Times(fix_properties=fix_properties)
     mul.insert_child(Constant(m, fix_properties=fix_properties))
-    mul.insert_child(r)
+    mul.insert_child(minus)
 
     plus = Plus(fix_properties=fix_properties)
     plus.insert_child(Pointer(tree, cache=cache, store_in_cache=store_in_cache, fix_properties=fix_properties))
@@ -861,7 +873,7 @@ def __sample_node(tree: Node, unif_depth: bool = True) -> Node:
     nodes = tree.get_subtree()
     if unif_depth:
         nodes = __sample_uniform_depth_nodes(nodes)
-    return randc(nodes)[0]
+    return nodes[int(randu()*len(nodes))]
 
 
 def __sample_uniform_depth_nodes(nodes: list) -> list:
@@ -880,7 +892,7 @@ def __sample_uniform_depth_nodes(nodes: list) -> list:
     """
     depths = [n.get_depth() for n in nodes]
     possible_depths = list(set(depths))
-    d = randc(possible_depths)[0]
+    d = possible_depths[int(randu()*len(possible_depths))]
     return [n for i, n in enumerate(nodes) if depths[i] == d]
 
 
@@ -930,7 +942,7 @@ def generate_offspring(parent: Node,
         var_op = all_var_ops[i]
         offspring = __undergo_variation_operator(var_op, offspring,
                                                  crossovers, mutations, coeff_opts,
-                                                 randc(donors)[0], internal_nodes, leaf_nodes)
+                                                 donors[int(randu()*len(donors))], internal_nodes, leaf_nodes)
         # check offspring meets constraints, else revert to backup
         if not __check_tree_meets_all_constraints(offspring, constraints):
             # revert to backup
