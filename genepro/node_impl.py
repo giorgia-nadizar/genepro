@@ -537,6 +537,72 @@ class Pointer(Node):
         return result
 
 
+class GSGPCrossover(Node):
+    def __init__(self,
+                 cache: Cache,
+                 fix_properties: bool = False
+                 ) -> None:
+        super().__init__(fix_properties=fix_properties)
+        self.__cache: Cache = cache
+        self.arity = 3
+        self.symb = 'gsgpcx'
+
+    def create_new_empty_node(self) -> Node:
+        return GSGPCrossover(cache=self.__cache, fix_properties=self.get_fix_properties())
+
+    def _get_args_repr(self, args):
+        return "GSGPCX(" + args[0] + ", " + args[1] + ", " + args[2] + ")"
+
+    def get_cache(self):
+        return self.__cache
+
+    def get_output(self, X):
+        cached_val = self.__cache.get(self)
+        if cached_val is not None:
+            return cached_val
+        c_outs = self._get_child_outputs(X)
+        t1 = c_outs[0]
+        t2 = c_outs[1]
+        r = c_outs[2]
+        s = np.core.umath.clip(r(X), -700.78, 700.78)
+        s = 1.0/(1.0 + np.exp(-s))
+        o1 = np.core.umath.clip(t1(X), -1e+100, 1e+100)
+        o2 = np.core.umath.clip(t2(X), -1e+100, 1e+100)
+        result = np.multiply(o1, s) + np.multiply(o2, (1 - s))
+        self.__cache.set(self, result)
+        return result
+
+
+class GSGPMutation(Node):
+    def __init__(self,
+                 m: float,
+                 fix_properties: bool = False
+                 ) -> None:
+        super().__init__(fix_properties=fix_properties)
+        self.arity = 3
+        self.__m = round(m, 2)
+        self.symb = f'gsgpmut{str(self.__m)}'
+
+    def create_new_empty_node(self) -> Node:
+        return GSGPMutation(m=self.__m, fix_properties=self.get_fix_properties())
+
+    def _get_args_repr(self, args):
+        return "GSGPMUT("+ str(self.__m) + ", " + args[0] + ", " + args[1] + ", " + args[2] + ")"
+
+    def get_output(self, X):
+        c_outs = self._get_child_outputs(X)
+        t = c_outs[0]
+        r1 = c_outs[1]
+        r2 = c_outs[2]
+        s1 = np.core.umath.clip(r1(X), -700.78, 700.78)
+        s1 = 1.0/(1.0 + np.exp(-s1))
+        s2 = np.core.umath.clip(r2(X), -700.78, 700.78)
+        s2 = 1.0/(1.0 + np.exp(-s2))
+        o = np.core.umath.clip(t(X), -1e+100, 1e+100)
+        result = o + self.__m * (s1 - s2)
+        return result
+
+
 class SemanticVector(Node):
     def __init__(self,
                  p: np.ndarray,
