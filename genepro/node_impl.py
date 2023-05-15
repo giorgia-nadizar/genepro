@@ -564,10 +564,10 @@ class GSGPCrossover(Node):
         t1 = c_outs[0]
         t2 = c_outs[1]
         r = c_outs[2]
-        s = np.core.umath.clip(r(X), -700.78, 700.78)
+        s = np.core.umath.clip(r, -700.78, 700.78)
         s = 1.0/(1.0 + np.exp(-s))
-        o1 = np.core.umath.clip(t1(X), -1e+100, 1e+100)
-        o2 = np.core.umath.clip(t2(X), -1e+100, 1e+100)
+        o1 = np.core.umath.clip(t1, -1e+100, 1e+100)
+        o2 = np.core.umath.clip(t2, -1e+100, 1e+100)
         result = np.multiply(o1, s) + np.multiply(o2, (1 - s))
         self.__cache.set(self, result)
         return result
@@ -594,11 +594,11 @@ class GSGPMutation(Node):
         t = c_outs[0]
         r1 = c_outs[1]
         r2 = c_outs[2]
-        s1 = np.core.umath.clip(r1(X), -700.78, 700.78)
+        s1 = np.core.umath.clip(r1, -700.78, 700.78)
         s1 = 1.0/(1.0 + np.exp(-s1))
-        s2 = np.core.umath.clip(r2(X), -700.78, 700.78)
+        s2 = np.core.umath.clip(r2, -700.78, 700.78)
         s2 = 1.0/(1.0 + np.exp(-s2))
-        o = np.core.umath.clip(t(X), -1e+100, 1e+100)
+        o = np.core.umath.clip(t, -1e+100, 1e+100)
         result = o + self.__m * (s1 - s2)
         return result
 
