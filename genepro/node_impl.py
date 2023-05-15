@@ -393,34 +393,17 @@ class Feature(Node):
 class Constant(Node):
     def __init__(self,
                  value: float,
-                 fix_properties: bool = False,
-                 known_n_samples: int = None
+                 fix_properties: bool = False
                  ) -> None:
         super().__init__(fix_properties=fix_properties)
         if value is None:
             raise AttributeError("The value provided in the constructor of Constant is None.")
-        if known_n_samples is not None and known_n_samples < 1:
-            raise ValueError(f'If provided, known_n_samples must be at least 1, found {known_n_samples} instead.')
         self.arity = 0
         self.__value = value
         self.symb = str(value)
-        self.__repeated_value = None
-        self.__known_n_samples = known_n_samples
-        if self.__known_n_samples is not None:
-            self.__repeated_value = np.repeat(self.__value, self.__known_n_samples)
-
-    def _set_repeated_value(self, repeated_value: np.ndarray = None, known_n_samples: int = None):
-        self.__repeated_value = repeated_value
-        self.__known_n_samples = known_n_samples
-
+    
     def create_new_empty_node(self) -> Node:
-        c = Constant(value=self.__value, fix_properties=self.get_fix_properties())
-        c._set_repeated_value(repeated_value=self.__repeated_value, known_n_samples=self.__known_n_samples)
-        return c
-
-    def nullify_known_n_samples(self):
-        self.__repeated_value = None
-        self.__known_n_samples = None
+        return Constant(value=self.__value, fix_properties=self.get_fix_properties())
 
     def get_value(self):
         return self.__value
@@ -428,18 +411,12 @@ class Constant(Node):
     def set_value(self, value: float):
         self.__value = value
         self.symb = str(value)
-        if self.__known_n_samples is not None:
-            self.__repeated_value = np.repeat(self.__value, self.__known_n_samples)
 
     def _get_args_repr(self, args):
         return self.symb
 
     def get_output(self, X: np.ndarray) -> np.ndarray:
-        if self.__known_n_samples is None:
-            return np.repeat(self.__value, X.shape[0])
-        if X.shape[0] == self.__known_n_samples:
-            return self.__repeated_value
-        return np.repeat(self.__value, X.shape[0])
+        return self.__value * np.ones(X.shape[0])
 
 
 class RandomGaussianConstant(Node):
@@ -467,32 +444,28 @@ class RandomGaussianConstant(Node):
         return self.symb
 
     def get_output(self, X: np.ndarray) -> np.ndarray:
-        return np.repeat(np.random.normal(loc=self.__mean, scale=self.__std), X.shape[0])
+        return np.random.normal(loc=self.__mean, scale=self.__std) * np.ones(X.shape[0])
 
 
 class Pointer(Node):
     def __init__(self,
                  value: Node,
-                 cache: Cache = None,
-                 store_in_cache: bool = False,
                  fix_properties: bool = False
                  ) -> None:
         super().__init__(fix_properties=fix_properties)
         if value is None:
             raise AttributeError("The value provided in the constructor of Pointer is None.")
-        self.__cache: Cache = cache
-        self.__store_in_cache: bool = store_in_cache
         self.arity = 0
         self.__value = value
-        self.symb = self.__value.get_readable_repr()
+        self.symb = 'pointer'
 
     def create_new_empty_node(self) -> Node:
-        return Pointer(value=self.__value, cache=self.__cache, store_in_cache=self.__store_in_cache, fix_properties=self.get_fix_properties())
+        return Pointer(value=self.__value, fix_properties=self.get_fix_properties())
 
     def __deepcopy__(self, memodict=None):
         if memodict is None:
             memodict = {}
-        return Pointer(value=self.__value, cache=self.__cache, store_in_cache=self.__store_in_cache, fix_properties=self.get_fix_properties())
+        return Pointer(value=self.__value, fix_properties=self.get_fix_properties())
 
     def get_height(self) -> int:
         return self.__value.get_height()
@@ -503,17 +476,6 @@ class Pointer(Node):
     def get_value(self):
         return self.__value
     
-    def get_cache(self):
-        return self.__cache
-
-    def get_store_in_cache(self) -> bool:
-        return self.__store_in_cache
-
-    def set_store_in_cache(self, store_in_cache: bool) -> bool:
-        old_store_in_cache = self.get_store_in_cache()
-        self.__store_in_cache = store_in_cache
-        return old_store_in_cache
-
     def _get_args_repr(self, args):
         return self.__value.get_readable_repr()
     
@@ -527,39 +489,42 @@ class Pointer(Node):
         return self.__value.get_string_as_lisp_expr()
 
     def get_output(self, X: np.ndarray) -> np.ndarray:
-        if not self.__store_in_cache:
-            return self.__value(X)
-        r = self.__cache.get(self.__value)
-        if r is not None:
-            return r
-        result = self.__value(X)
-        self.__cache.set(self.__value, result)
-        return result
+        return self.__value(X)
 
 
 class GSGPCrossover(Node):
     def __init__(self,
-                 cache: Cache,
+                 enable_caching: bool = False,
                  fix_properties: bool = False
                  ) -> None:
         super().__init__(fix_properties=fix_properties)
-        self.__cache: Cache = cache
         self.arity = 3
         self.symb = 'gsgpcx'
+        self.__pred = None
+        self.__enable_caching = enable_caching
 
     def create_new_empty_node(self) -> Node:
-        return GSGPCrossover(cache=self.__cache, fix_properties=self.get_fix_properties())
+        return GSGPCrossover(enable_caching=self.__enable_caching, fix_properties=self.get_fix_properties())
 
     def _get_args_repr(self, args):
         return "GSGPCX(" + args[0] + ", " + args[1] + ", " + args[2] + ")"
 
-    def get_cache(self):
-        return self.__cache
+    def clean_pred(self):
+        self.__pred = None
+
+    def is_caching_enabled(self):
+        return self.__enable_caching
+
+    def enable_caching(self):
+        self.__enable_caching = True
+
+    def disable_caching(self):
+        self.__enable_caching = False
+        self.__pred = None
 
     def get_output(self, X):
-        cached_val = self.__cache.get(self)
-        if cached_val is not None:
-            return cached_val
+        if self.__enable_caching and self.__pred is not None:
+            return self.__pred
         c_outs = self._get_child_outputs(X)
         t1 = c_outs[0]
         t2 = c_outs[1]
@@ -569,7 +534,8 @@ class GSGPCrossover(Node):
         o1 = np.core.umath.clip(t1, -1e+100, 1e+100)
         o2 = np.core.umath.clip(t2, -1e+100, 1e+100)
         result = np.multiply(o1, s) + np.multiply(o2, (1 - s))
-        self.__cache.set(self, result)
+        if self.__enable_caching:
+            self.__pred = result
         return result
 
 

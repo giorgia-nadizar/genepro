@@ -111,4 +111,25 @@ class Cache(Generic[K, V]):
     def remove(self, key: K) -> None:
         if self.contains(key):
             del self.__cache[key]
+
+class IntCode:
+    def __init__(self,
+                 idx: int
+                 ) -> None:
+        super().__init__()
+        self.__idx: int = idx
+
+    def __hash__(self) -> int:
+        return self.int_code()
     
+    def __eq__(self, value: IntCode) -> bool:
+        return self.int_code() == value.int_code()
+    
+    def __str__(self) -> str:
+        return str(self.int_code())
+    
+    def __repr__(self) -> str:
+        return f'IntCode({str(self)})'
+    
+    def int_code(self) -> int:
+        return self.__idx
