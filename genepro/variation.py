@@ -154,10 +154,11 @@ def generate_half_and_half_tree(internal_nodes: list, leaf_nodes: list, max_dept
     Node
       the root node of the generated tree
     """
+    maximum_depth: int = int(randu()*(max_depth+1))
     if randu() < 0.5:
-        return generate_random_tree(internal_nodes=internal_nodes, leaf_nodes=leaf_nodes, max_depth=max_depth, curr_depth=0, ephemeral_func=ephemeral_func, p=p, fixed_constants=fixed_constants)
+        return generate_random_tree(internal_nodes=internal_nodes, leaf_nodes=leaf_nodes, max_depth=maximum_depth, curr_depth=0, ephemeral_func=ephemeral_func, p=p, fixed_constants=fixed_constants)
     else:
-        return generate_full_random_tree(internal_nodes=internal_nodes, leaf_nodes=leaf_nodes, max_depth=max_depth, curr_depth=0, ephemeral_func=ephemeral_func, p=p, fixed_constants=fixed_constants)
+        return generate_full_random_tree(internal_nodes=internal_nodes, leaf_nodes=leaf_nodes, max_depth=maximum_depth, curr_depth=0, ephemeral_func=ephemeral_func, p=p, fixed_constants=fixed_constants)
 
 
 def generate_tree_wrt_strategy(internal_nodes: list, leaf_nodes: list, max_depth: int, generation_strategy: str = 'grow', ephemeral_func: Callable = None, p: list[float] = None, fixed_constants: list = None) -> Node:
