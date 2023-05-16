@@ -110,7 +110,7 @@ class Node:
         """
         return self.get_n_nodes()
 
-    def __call__(self, X: np.ndarray) -> np.ndarray:
+    def __call__(self, X: np.ndarray, **kwargs) -> np.ndarray:
         """
         Shorthand for get_output
 
@@ -124,7 +124,7 @@ class Node:
         np.ndarray
           the output obtained by processing the input
         """
-        return self.get_output(X)
+        return self.get_output(X, **kwargs)
 
     def __eq__(self, other: Node) -> bool:
         """
@@ -307,7 +307,7 @@ class Node:
                 break
         return i
 
-    def get_output(self, X: np.ndarray) -> np.ndarray:
+    def get_output(self, X: np.ndarray, **kwargs) -> np.ndarray:
         """
         Returns the output of this node after processing the given input
 
@@ -388,7 +388,7 @@ class Node:
 
         return self.__n_nodes_value
 
-    def _get_child_outputs(self, X: np.ndarray) -> list:
+    def _get_child_outputs(self, X: np.ndarray, **kwargs) -> list:
         """
         Returns the output of the children for the given input as a list
 
@@ -404,7 +404,7 @@ class Node:
         """
         c_outs = []
         for i in range(self.arity):
-            c_outs.append(self._children[i].get_output(X))
+            c_outs.append(self._children[i].get_output(X, **kwargs))
         return c_outs
 
     def _get_args_repr(self, args: list) -> str:

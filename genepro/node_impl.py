@@ -18,8 +18,8 @@ class Plus(Node):
     def _get_args_repr(self, args):
         return self._get_typical_repr(args, 'between')
 
-    def get_output(self, X):
-        c_outs = self._get_child_outputs(X)
+    def get_output(self, X, **kwargs):
+        c_outs = self._get_child_outputs(X, **kwargs)
         return c_outs[0] + c_outs[1]
 
 
@@ -37,8 +37,8 @@ class Minus(Node):
     def _get_args_repr(self, args):
         return self._get_typical_repr(args, 'between')
 
-    def get_output(self, X):
-        c_outs = self._get_child_outputs(X)
+    def get_output(self, X, **kwargs):
+        c_outs = self._get_child_outputs(X, **kwargs)
         return c_outs[0] - c_outs[1]
 
 
@@ -56,8 +56,8 @@ class Times(Node):
     def _get_args_repr(self, args):
         return self._get_typical_repr(args, 'between')
 
-    def get_output(self, X):
-        c_outs = self._get_child_outputs(X)
+    def get_output(self, X, **kwargs):
+        c_outs = self._get_child_outputs(X, **kwargs)
         return np.multiply(np.core.umath.clip(c_outs[0], -1e+100, 1e+100), np.core.umath.clip(c_outs[1], -1e+100, 1e+100))
 
 
@@ -75,8 +75,8 @@ class Div(Node):
     def _get_args_repr(self, args):
         return self._get_typical_repr(args, 'between')
 
-    def get_output(self, X):
-        c_outs = self._get_child_outputs(X)
+    def get_output(self, X, **kwargs):
+        c_outs = self._get_child_outputs(X, **kwargs)
         # implements a protection to avoid dividing by 0
         c_outs[0] = np.core.umath.clip(c_outs[0], -1e+100, 1e+100)
         c_outs[1] = np.core.umath.clip(c_outs[1], -1e+100, 1e+100)
@@ -100,8 +100,8 @@ class Mod(Node):
     def _get_args_repr(self, args):
         return self._get_typical_repr(args, 'between')
 
-    def get_output(self, X):
-        c_outs = self._get_child_outputs(X)
+    def get_output(self, X, **kwargs):
+        c_outs = self._get_child_outputs(X, **kwargs)
         # implements a protection to avoid dividing by 0
         c_outs[0] = np.core.umath.clip(c_outs[0], -1e+100, 1e+100)
         c_outs[1] = np.core.umath.clip(c_outs[1], -1e+100, 1e+100)
@@ -125,8 +125,8 @@ class Square(Node):
     def _get_args_repr(self, args):
         return self._get_typical_repr(args, 'after')
 
-    def get_output(self, X):
-        c_outs = self._get_child_outputs(X)
+    def get_output(self, X, **kwargs):
+        c_outs = self._get_child_outputs(X, **kwargs)
         # Implement protection with clip to avoid overflow encoutered error and avoid getting inf as outputs
         return np.square(np.core.umath.clip(c_outs[0], -1.340780792993396e+100, 1.340780792993396e+100))
 
@@ -145,8 +145,8 @@ class Cube(Node):
     def _get_args_repr(self, args):
         return self._get_typical_repr(args, 'after')
 
-    def get_output(self, X):
-        c_outs = self._get_child_outputs(X)
+    def get_output(self, X, **kwargs):
+        c_outs = self._get_child_outputs(X, **kwargs)
         # Implement protection with clip to avoid overflow encoutered error and avoid getting inf as outputs
         return np.power(np.core.umath.clip(c_outs[0], -5.643803094119938e+70, 5.643803094119938e+70), 3)
 
@@ -166,8 +166,8 @@ class Sqrt(Node):
         # let's report also protection
         return "sqrt(abs(" + args[0] + "))"
 
-    def get_output(self, X):
-        c_outs = self._get_child_outputs(X)
+    def get_output(self, X, **kwargs):
+        c_outs = self._get_child_outputs(X, **kwargs)
         # implements a protection to avoid arg <= 0
         return np.sqrt(np.abs(c_outs[0]))
 
@@ -187,8 +187,8 @@ class Log(Node):
         # let's report also protection (to some level of detail)
         return "log(abs(" + args[0] + "))"
 
-    def get_output(self, X):
-        c_outs = self._get_child_outputs(X)
+    def get_output(self, X, **kwargs):
+        c_outs = self._get_child_outputs(X, **kwargs)
         # implements a protection to avoid arg <= 0
         protected_log = np.log(np.abs(c_outs[0]) + 1e-9)
         return protected_log
@@ -208,8 +208,8 @@ class Exp(Node):
     def _get_args_repr(self, args):
         return self._get_typical_repr(args, 'before')
 
-    def get_output(self, X):
-        c_outs = self._get_child_outputs(X)
+    def get_output(self, X, **kwargs):
+        c_outs = self._get_child_outputs(X, **kwargs)
         # Implement protection with clip to avoid overflow encoutered error and avoid getting inf as outputs
         return np.exp(np.core.umath.clip(c_outs[0], -700.78, 700.78))
 
@@ -228,8 +228,8 @@ class Sin(Node):
     def _get_args_repr(self, args):
         return self._get_typical_repr(args, 'before')
 
-    def get_output(self, X):
-        c_outs = self._get_child_outputs(X)
+    def get_output(self, X, **kwargs):
+        c_outs = self._get_child_outputs(X, **kwargs)
         return np.sin(c_outs[0])
 
 
@@ -247,8 +247,8 @@ class Cos(Node):
     def _get_args_repr(self, args):
         return self._get_typical_repr(args, 'before')
 
-    def get_output(self, X):
-        c_outs = self._get_child_outputs(X)
+    def get_output(self, X, **kwargs):
+        c_outs = self._get_child_outputs(X, **kwargs)
         return np.cos(c_outs[0])
 
 
@@ -266,8 +266,8 @@ class Max(Node):
     def _get_args_repr(self, args):
         return self._get_typical_repr(args, "before")
 
-    def get_output(self, X):
-        c_outs = self._get_child_outputs(X)
+    def get_output(self, X, **kwargs):
+        c_outs = self._get_child_outputs(X, **kwargs)
         return np.where(c_outs[0] > c_outs[1], c_outs[0], c_outs[1])
 
 
@@ -285,8 +285,8 @@ class Min(Node):
     def _get_args_repr(self, args):
         return self._get_typical_repr(args, "before")
 
-    def get_output(self, X):
-        c_outs = self._get_child_outputs(X)
+    def get_output(self, X, **kwargs):
+        c_outs = self._get_child_outputs(X, **kwargs)
         return np.where(c_outs[0] < c_outs[1], c_outs[0], c_outs[1])
 
 
@@ -304,8 +304,8 @@ class And(Node):
     def _get_args_repr(self, args):
         return self._get_typical_repr(args, "between")
 
-    def get_output(self, X):
-        c_outs = self._get_child_outputs(X)
+    def get_output(self, X, **kwargs):
+        c_outs = self._get_child_outputs(X, **kwargs)
         return np.where(np.logical_or(c_outs[0] == 0, c_outs[1] == 0), 0, 1)
 
 
@@ -323,8 +323,8 @@ class Or(Node):
     def _get_args_repr(self, args):
         return self._get_typical_repr(args, "between")
 
-    def get_output(self, X):
-        c_outs = self._get_child_outputs(X)
+    def get_output(self, X, **kwargs):
+        c_outs = self._get_child_outputs(X, **kwargs)
         return np.where(np.logical_and(c_outs[0] == 0, c_outs[1] == 0), 0, 1)
 
 
@@ -342,8 +342,8 @@ class Xor(Node):
     def _get_args_repr(self, args):
         return self._get_typical_repr(args, "between")
 
-    def get_output(self, X):
-        c_outs = self._get_child_outputs(X)
+    def get_output(self, X, **kwargs):
+        c_outs = self._get_child_outputs(X, **kwargs)
         return np.where(
             np.logical_or(
                 np.logical_and(c_outs[0] == 0, c_outs[1] != 0),
@@ -365,8 +365,8 @@ class IfThenElse(Node):
     def _get_args_repr(self, args):
         return "if(" + args[0] + " >= 0)then(" + args[1] + ")else(" + args[2] + ")"
 
-    def get_output(self, X):
-        c_outs = self._get_child_outputs(X)
+    def get_output(self, X, **kwargs):
+        c_outs = self._get_child_outputs(X, **kwargs)
         return np.where(c_outs[0] >= 0, c_outs[1], c_outs[2])
 
 
@@ -386,7 +386,7 @@ class Feature(Node):
     def _get_args_repr(self, args):
         return self.symb
 
-    def get_output(self, X):
+    def get_output(self, X, **kwargs):
         return X[:, self.id]
 
 
@@ -415,7 +415,7 @@ class Constant(Node):
     def _get_args_repr(self, args):
         return self.symb
 
-    def get_output(self, X: np.ndarray) -> np.ndarray:
+    def get_output(self, X: np.ndarray, **kwargs) -> np.ndarray:
         return self.__value * np.ones(X.shape[0])
 
 
@@ -443,7 +443,7 @@ class RandomGaussianConstant(Node):
     def _get_args_repr(self, args):
         return self.symb
 
-    def get_output(self, X: np.ndarray) -> np.ndarray:
+    def get_output(self, X: np.ndarray, **kwargs) -> np.ndarray:
         return np.random.normal(loc=self.__mean, scale=self.__std) * np.ones(X.shape[0])
 
 
@@ -488,8 +488,8 @@ class Pointer(Node):
     def _get_single_string_repr_lisp(self) -> str:
         return self.__value.get_string_as_lisp_expr()
 
-    def get_output(self, X: np.ndarray) -> np.ndarray:
-        return self.__value(X)
+    def get_output(self, X: np.ndarray, **kwargs) -> np.ndarray:
+        return self.__value(X, **kwargs)
 
 
 class GSGPCrossover(Node):
@@ -500,7 +500,7 @@ class GSGPCrossover(Node):
         super().__init__(fix_properties=fix_properties)
         self.arity = 3
         self.symb = 'gsgpcx'
-        self.__pred = None
+        self.__pred = {}
         self.__enable_caching = enable_caching
 
     def create_new_empty_node(self) -> Node:
@@ -510,7 +510,7 @@ class GSGPCrossover(Node):
         return "GSGPCX(" + args[0] + ", " + args[1] + ", " + args[2] + ")"
 
     def clean_pred(self):
-        self.__pred = None
+        self.__pred = {}
 
     def is_caching_enabled(self):
         return self.__enable_caching
@@ -520,12 +520,13 @@ class GSGPCrossover(Node):
 
     def disable_caching(self):
         self.__enable_caching = False
-        self.__pred = None
+        self.__pred = {}
 
-    def get_output(self, X):
-        if self.__enable_caching and self.__pred is not None:
-            return self.__pred
-        c_outs = self._get_child_outputs(X)
+    def get_output(self, X, **kwargs):
+        dataset_type = kwargs.get('dataset_type', None)
+        if self.__enable_caching and dataset_type is not None and dataset_type in self.__pred:
+            return self.__pred[dataset_type]
+        c_outs = self._get_child_outputs(X, **kwargs)
         t1 = c_outs[0]
         t2 = c_outs[1]
         r = c_outs[2]
@@ -534,8 +535,8 @@ class GSGPCrossover(Node):
         o1 = np.core.umath.clip(t1, -1e+100, 1e+100)
         o2 = np.core.umath.clip(t2, -1e+100, 1e+100)
         result = np.multiply(o1, s) + np.multiply(o2, (1 - s))
-        if self.__enable_caching:
-            self.__pred = result
+        if self.__enable_caching and dataset_type is not None:
+            self.__pred[dataset_type] = result
         return result
 
 
@@ -555,8 +556,8 @@ class GSGPMutation(Node):
     def _get_args_repr(self, args):
         return "GSGPMUT("+ str(self.__m) + ", " + args[0] + ", " + args[1] + ", " + args[2] + ")"
 
-    def get_output(self, X):
-        c_outs = self._get_child_outputs(X)
+    def get_output(self, X, **kwargs):
+        c_outs = self._get_child_outputs(X, **kwargs)
         t = c_outs[0]
         r1 = c_outs[1]
         r2 = c_outs[2]
@@ -605,7 +606,7 @@ class SemanticVector(Node):
     def _get_single_string_repr_lisp(self) -> str:
         return self.get_mean_and_std_symb()
 
-    def get_output(self, X: np.ndarray) -> np.ndarray:
+    def get_output(self, X: np.ndarray, **kwargs) -> np.ndarray:
         if X.shape[0] != self.__value.shape[0]:
             raise ValueError("Mismatch between number of observations and number of actual predictions.")
         return self.__value
@@ -625,8 +626,8 @@ class Power(Node):
     def _get_args_repr(self, args):
         return self._get_typical_repr(args, 'between')
 
-    def get_output(self, X):
-        c_outs = self._get_child_outputs(X)
+    def get_output(self, X, **kwargs):
+        c_outs = self._get_child_outputs(X, **kwargs)
         # implements a protection to avoid raising negative values to non-integral values
         base = np.abs(c_outs[0]) + 1e-9
         exponent = c_outs[1]
@@ -649,8 +650,8 @@ class Arcsin(Node):
     def _get_args_repr(self, args):
         return self._get_typical_repr(args, 'before')
 
-    def get_output(self, X):
-        c_outs = self._get_child_outputs(X)
+    def get_output(self, X, **kwargs):
+        c_outs = self._get_child_outputs(X, **kwargs)
         # implements a protection to avoid arg out of [-1,1]
         return np.arcsin(np.core.umath.clip(c_outs[0], -1, 1))
 
@@ -669,8 +670,8 @@ class Arccos(Node):
     def _get_args_repr(self, args):
         return self._get_typical_repr(args, 'before')
 
-    def get_output(self, X):
-        c_outs = self._get_child_outputs(X)
+    def get_output(self, X, **kwargs):
+        c_outs = self._get_child_outputs(X, **kwargs)
         # implements a protection to avoid arg out of [-1,1]
         return np.arccos(np.core.umath.clip(c_outs[0], -1, 1))
 
@@ -689,8 +690,8 @@ class Tanh(Node):
     def _get_args_repr(self, args):
         return self._get_typical_repr(args, 'before')
 
-    def get_output(self, X):
-        c_outs = self._get_child_outputs(X)
+    def get_output(self, X, **kwargs):
+        c_outs = self._get_child_outputs(X, **kwargs)
         return np.tanh(np.core.umath.clip(c_outs[0], -1e+100, 1e+100))
     
 
@@ -708,8 +709,8 @@ class Identity(Node):
     def _get_args_repr(self, args):
         return self._get_typical_repr(args, 'before')
 
-    def get_output(self, X):
-        c_outs = self._get_child_outputs(X)
+    def get_output(self, X, **kwargs):
+        c_outs = self._get_child_outputs(X, **kwargs)
         return c_outs[0]
 
 
@@ -727,8 +728,8 @@ class ReLU(Node):
     def _get_args_repr(self, args):
         return self._get_typical_repr(args, 'before')
 
-    def get_output(self, X):
-        c_outs = self._get_child_outputs(X)
+    def get_output(self, X, **kwargs):
+        c_outs = self._get_child_outputs(X, **kwargs)
         return np.where(c_outs[0] > 0, c_outs[0], 0)
 
 
@@ -746,8 +747,8 @@ class Sigmoid(Node):
     def _get_args_repr(self, args):
         return self._get_typical_repr(args, 'before')
 
-    def get_output(self, X):
-        c_outs = self._get_child_outputs(X)
+    def get_output(self, X, **kwargs):
+        c_outs = self._get_child_outputs(X, **kwargs)
         c_outs[0] = np.core.umath.clip(c_outs[0], -700.78, 700.78)
         return 1.0/(1.0 + np.exp(-c_outs[0]))
 
@@ -766,8 +767,8 @@ class UnaryMinus(Node):
     def _get_args_repr(self, args):
         return self._get_typical_repr(args, 'before')
 
-    def get_output(self, X):
-        c_outs = self._get_child_outputs(X)
+    def get_output(self, X, **kwargs):
+        c_outs = self._get_child_outputs(X, **kwargs)
         return -1 * c_outs[0]
 
 
@@ -785,8 +786,8 @@ class Not(Node):
     def _get_args_repr(self, args):
         return self._get_typical_repr(args, 'before')
 
-    def get_output(self, X):
-        c_outs = self._get_child_outputs(X)
+    def get_output(self, X, **kwargs):
+        c_outs = self._get_child_outputs(X, **kwargs)
         return np.where(c_outs[0] == 0, 1, 0)
 
 
@@ -804,8 +805,8 @@ class Even(Node):
     def _get_args_repr(self, args):
         return self._get_typical_repr(args, 'before')
 
-    def get_output(self, X):
-        c_outs = self._get_child_outputs(X)
+    def get_output(self, X, **kwargs):
+        c_outs = self._get_child_outputs(X, **kwargs)
         return np.where(c_outs[0] % 2 == 0, 1, 0)
 
 
@@ -823,6 +824,6 @@ class Odd(Node):
     def _get_args_repr(self, args):
         return self._get_typical_repr(args, 'before')
 
-    def get_output(self, X):
-        c_outs = self._get_child_outputs(X)
+    def get_output(self, X, **kwargs):
+        c_outs = self._get_child_outputs(X, **kwargs)
         return np.where(c_outs[0] % 2 != 0, 1, 0)
