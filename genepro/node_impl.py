@@ -593,49 +593,6 @@ class GSGPMutation(Node):
         return result
 
 
-class SemanticVector(Node):
-    def __init__(self,
-                 p: np.ndarray,
-                 fix_properties: bool = False,
-                 **kwargs
-                 ) -> None:
-        super().__init__(fix_properties=fix_properties, **kwargs)
-        if p is None:
-            raise AttributeError("The value provided in the constructor of SemanticVectorNode is None.")
-        if len(p.shape) != 1:
-            raise AttributeError("The given vector must be 1-dimensional.")
-        self.arity = 0
-        self.__value = p
-        self.symb = 'sv'
-
-    def create_new_empty_node(self, **kwargs) -> Node:
-        return SemanticVector(p=self.__value, fix_properties=self.get_fix_properties(), **kwargs)
-
-    def get_mean_and_std_symb(self) -> str:
-        return f'sv_{str(round(float(np.mean(self.__value)), 2))}_{str(round(float(np.std(self.__value)), 2))}'
-
-    def get_value(self):
-        return self.__value
-
-    def _get_args_repr(self, args):
-        return self.get_mean_and_std_symb()
-    
-    def _single_hash_value(self) -> int:
-        s = self.get_mean_and_std_symb()
-        return zlib.adler32(bytes(s, "utf-8"))
-    
-    def _get_single_string_repr_tree(self) -> str:
-        return self.get_mean_and_std_symb()
-    
-    def _get_single_string_repr_lisp(self) -> str:
-        return self.get_mean_and_std_symb()
-
-    def get_output(self, X: np.ndarray, **kwargs) -> np.ndarray:
-        if X.shape[0] != self.__value.shape[0]:
-            raise ValueError("Mismatch between number of observations and number of actual predictions.")
-        return self.__value
-
-
 class Power(Node):
     def __init__(self,
                  fix_properties: bool = False,
