@@ -8,7 +8,7 @@ from numpy.random import shuffle
 from copy import deepcopy
 
 from genepro.node import Node
-from genepro.node_impl import Constant, Minus, Plus, Sigmoid, Pointer, Times
+from genepro.node_impl import Constant, GSGPCrossover, GSGPMutation, Minus, Plus, Sigmoid, Pointer, Times
 from genepro.storage import Cache
 
 
@@ -355,7 +355,7 @@ def __find_cuts_subtree_crossover_two_children(tree: Node, max_depth: int, tree1
         __find_cuts_subtree_crossover_two_children(tree.get_child(i), max_depth, tree1_mutated_branch_max_depth, child1_height, candidates)
 
 
-def geometric_semantic_single_tree_crossover(tree1: Node, tree2: Node, internal_nodes: list[Node], leaf_nodes: list[Node], max_depth: int = 4, generation_strategy: str = 'grow', ephemeral_func: Callable = None, p: list[float] = None, fixed_constants: list = None, cache: Cache = None, store_in_cache: bool = False, fix_properties: bool = False, **kwargs) -> Node:
+def geometric_semantic_single_tree_crossover(tree1: Node, tree2: Node, internal_nodes: list[Node], leaf_nodes: list[Node], max_depth: int = 4, generation_strategy: str = 'grow', ephemeral_func: Callable = None, p: list[float] = None, fixed_constants: list = None, fix_properties: bool = False, enable_caching: bool = False, **kwargs) -> Node:
     """
     Performs geometric semantic crossover and returns the resulting offspring without changing the original trees
 
@@ -379,38 +379,21 @@ def geometric_semantic_single_tree_crossover(tree1: Node, tree2: Node, internal_
       probability distribution over internal nodes. Default is None, meaning uniform distribution.
     fixed_constants: list
       list containing the fixed constants that should eventually be sampled during the generation.
-    cache : Cache
-      cache that stores results for trees that have been seen during the evolution
-    store_in_cache : bool
-      if True, it uses the cache dictionary to store already computed results, otherwise, it computes every time the results of the whole tree
     fix_properties : bool
       the fix_properties attribute of the Node class
-      
+    enable_caching : bool
+      if True, it enables caching for GSGPCrossover operator
+        
     Returns
     -------
     Node
       the tree after crossover
     """
-
-    r = Sigmoid(fix_properties=fix_properties, **kwargs)
-    r.insert_child(generate_tree_wrt_strategy(internal_nodes=internal_nodes, leaf_nodes=leaf_nodes, generation_strategy=generation_strategy, max_depth=max_depth, ephemeral_func=ephemeral_func, p=p, fixed_constants=fixed_constants, **kwargs))
-    
-    minus = Minus(fix_properties=fix_properties, **kwargs)
-    minus.insert_child(Constant(1.0, fix_properties=fix_properties, **kwargs))
-    minus.insert_child(Pointer(r, cache=None, store_in_cache=False, fix_properties=fix_properties, **kwargs))
-
-    mul1 = Times(fix_properties=fix_properties, **kwargs)
-    mul1.insert_child(Pointer(tree1, cache=cache, store_in_cache=store_in_cache, fix_properties=fix_properties, **kwargs))
-    mul1.insert_child(Pointer(r, cache=None, store_in_cache=False, fix_properties=fix_properties, **kwargs))
-
-    mul2 = Times(fix_properties=fix_properties, **kwargs)
-    mul2.insert_child(Pointer(tree2, cache=cache, store_in_cache=store_in_cache, fix_properties=fix_properties, **kwargs))
-    mul2.insert_child(minus, **kwargs)
-
-    plus = Plus(fix_properties=fix_properties, **kwargs)
-    plus.insert_child(mul1)
-    plus.insert_child(mul2)
-    return plus
+    cx_tree: Node = GSGPCrossover(enable_caching=enable_caching, fix_properties=fix_properties, **kwargs)
+    cx_tree.insert_child(Pointer(tree1, fix_properties=fix_properties, **kwargs))
+    cx_tree.insert_child(Pointer(tree2, fix_properties=fix_properties, **kwargs))
+    cx_tree.insert_child(generate_tree_wrt_strategy(internal_nodes=internal_nodes, leaf_nodes=leaf_nodes, generation_strategy=generation_strategy, max_depth=max_depth, ephemeral_func=ephemeral_func, p=p, fixed_constants=fixed_constants, **kwargs))
+    return cx_tree
 
 
 def node_level_crossover(tree: Node, donor: Node, same_depth: bool = False, prob_swap: float = 0.1) -> Node:
@@ -703,7 +686,7 @@ def safe_subtree_mutation(tree: Node, internal_nodes: list, leaf_nodes: list,
     return subtree_mutation(deepcopy(tree), internal_nodes, leaf_nodes, unif_depth=unif_depth, max_depth=max_depth, generation_strategy=generation_strategy, ephemeral_func=ephemeral_func, p=p, fixed_constants=fixed_constants, **kwargs)
 
 
-def geometric_semantic_tree_mutation(tree: Node, internal_nodes: list, leaf_nodes: list, max_depth: int = 4, generation_strategy: str = 'grow', ephemeral_func: Callable = None, p: list[float] = None, fixed_constants: list = None, m: float = 0.5, cache: Cache = None, store_in_cache: bool = False, fix_properties: bool = False, **kwargs) -> Node:
+def geometric_semantic_tree_mutation(tree: Node, internal_nodes: list, leaf_nodes: list, max_depth: int = 4, generation_strategy: str = 'grow', ephemeral_func: Callable = None, p: list[float] = None, fixed_constants: list = None, m: float = 0.5, fix_properties: bool = False, **kwargs) -> Node:
     """
     Performs geometric semantic tree mutation. Pointers are used to avoid generation very large trees to store in memory.
 
@@ -727,10 +710,6 @@ def geometric_semantic_tree_mutation(tree: Node, internal_nodes: list, leaf_node
       list containing the fixed constants that should eventually be sampled during the generation.
     m : float
       a coefficient in the geometric semantic mutation
-    cache : Cache
-      cache that stores results for trees that have been seen during the evolution
-    store_in_cache : bool
-      if True, it uses the cache dictionary to store already computed results, otherwise, it computes every time the results of the whole tree
     fix_properties : bool
       the fix_properties attribute of the Node class
 
@@ -739,25 +718,11 @@ def geometric_semantic_tree_mutation(tree: Node, internal_nodes: list, leaf_node
     Node
       the tree after mutation (warning: replace the original tree with the returned one to avoid undefined behavior)
     """
-
-    r_1 = Sigmoid(fix_properties=fix_properties, **kwargs)
-    r_1.insert_child(generate_tree_wrt_strategy(internal_nodes=internal_nodes, leaf_nodes=leaf_nodes, max_depth=max_depth, generation_strategy=generation_strategy, ephemeral_func=ephemeral_func, p=p, fixed_constants=fixed_constants, **kwargs))
-    
-    r_2 = Sigmoid(fix_properties=fix_properties, **kwargs)
-    r_2.insert_child(generate_tree_wrt_strategy(internal_nodes=internal_nodes, leaf_nodes=leaf_nodes, max_depth=max_depth, generation_strategy=generation_strategy, ephemeral_func=ephemeral_func, p=p, fixed_constants=fixed_constants, **kwargs))
-    
-    minus = Minus(fix_properties=fix_properties, **kwargs)
-    minus.insert_child(r_1)
-    minus.insert_child(r_2)
-
-    mul = Times(fix_properties=fix_properties, **kwargs)
-    mul.insert_child(Constant(m, fix_properties=fix_properties, **kwargs))
-    mul.insert_child(minus)
-
-    plus = Plus(fix_properties=fix_properties, **kwargs)
-    plus.insert_child(Pointer(tree, cache=cache, store_in_cache=store_in_cache, fix_properties=fix_properties, **kwargs))
-    plus.insert_child(mul)
-    return plus
+    mut_tree: Node = GSGPMutation(m=m, fix_properties=fix_properties, **kwargs)
+    mut_tree.insert_child(Pointer(tree, fix_properties=fix_properties, **kwargs))
+    mut_tree.insert_child(generate_tree_wrt_strategy(internal_nodes=internal_nodes, leaf_nodes=leaf_nodes, max_depth=max_depth, generation_strategy=generation_strategy, ephemeral_func=ephemeral_func, p=p, fixed_constants=fixed_constants, **kwargs))
+    mut_tree.insert_child(generate_tree_wrt_strategy(internal_nodes=internal_nodes, leaf_nodes=leaf_nodes, max_depth=max_depth, generation_strategy=generation_strategy, ephemeral_func=ephemeral_func, p=p, fixed_constants=fixed_constants, **kwargs))
+    return mut_tree
 
 
 def safe_subforest_mutation(forest: list[Node], internal_nodes: list, leaf_nodes: list,
