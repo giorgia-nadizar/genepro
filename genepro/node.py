@@ -100,6 +100,17 @@ class Node:
           the attribute symb
         """
         return self.symb
+    
+    def __str__(self) -> str:
+        """
+        Returns the string representation of this node
+
+        Returns
+        -------
+        str
+          the attribute symb
+        """
+        return self.symb
 
     def __len__(self) -> int:
         """
