@@ -7,7 +7,7 @@ import re
 
 from genepro.node import Node
 from genepro import node_impl
-from genepro.node_impl import Feature, Constant, Pointer, SemanticVector, RandomGaussianConstant
+from genepro.node_impl import Feature, Constant, GSGPCrossover, GSGPMutation, Pointer, SemanticVector, RandomGaussianConstant
 
 
 def compute_linear_scaling(y, p):
@@ -32,7 +32,7 @@ def compute_linear_scaling(y, p):
     return slope, intercept
 
 
-def tree_from_prefix_repr(prefix_repr: str, fix_properties: bool = False, **kwargs) -> Node:
+def tree_from_prefix_repr(prefix_repr: str, fix_properties: bool = False, enable_caching: bool = False, **kwargs) -> Node:
     """
     Creates a tree from a string representation in prefix format (that is, pre-order tree traversal);
     the symbol in the string representation need to match those in the Node implementations (in `genepro.node_impl.py`)
@@ -43,6 +43,8 @@ def tree_from_prefix_repr(prefix_repr: str, fix_properties: bool = False, **kwar
       the string representation of the tree as a list of nodes parsed with pre-order traversal (obtainable with `str(tree.get_subtree())`)
     fix_properties : bool
       the fix_properties attribute of the Node class
+    enable_caching : bool
+      if True, it enables caching for GSGPCrossover operator
   
     Returns
     -------
@@ -55,15 +57,15 @@ def tree_from_prefix_repr(prefix_repr: str, fix_properties: bool = False, **kwar
     possible_nodes = list()
     for node_cls in node_classes:
         # handle Features and Constants separetely (also, avoid base class Node)
-        if node_cls == Node or node_cls == Feature or node_cls == Constant or node_cls == Pointer or node_cls == SemanticVector or node_cls == RandomGaussianConstant:
+        if node_cls == Node or node_cls == Feature or node_cls == Constant or node_cls == Pointer or node_cls == RandomGaussianConstant or node_cls == GSGPCrossover or node_cls == GSGPMutation:
             continue
         node_obj = node_cls(fix_properties=fix_properties, **kwargs)
         possible_nodes.append(node_obj)
-    tree, _ = __tree_from_symb_list_recursive(symb_list, possible_nodes, fix_properties=fix_properties, **kwargs)
+    tree, _ = __tree_from_symb_list_recursive(symb_list, possible_nodes, fix_properties=fix_properties, enable_caching=enable_caching, **kwargs)
     return tree
 
 
-def __tree_from_symb_list_recursive(symb_list: list, possible_nodes: list, fix_properties: bool, **kwargs):
+def __tree_from_symb_list_recursive(symb_list: list, possible_nodes: list, fix_properties: bool, enable_caching: bool, **kwargs):
     """
     Helper recursive function for `tree_from_prefix_repr`
 
@@ -75,6 +77,8 @@ def __tree_from_symb_list_recursive(symb_list: list, possible_nodes: list, fix_p
       list of all possible Node objects from `genepro.node_impl`
     fix_properties : bool
       the fix_properties attribute of the Node class
+    enable_caching : bool
+      if True, it enables caching for GSGPCrossover operator
 
     Returns
     -------
@@ -94,7 +98,7 @@ def __tree_from_symb_list_recursive(symb_list: list, possible_nodes: list, fix_p
         if symb == str(pn):
             n = deepcopy(pn)
             for _ in range(n.arity):
-                c, symb_list = __tree_from_symb_list_recursive(symb_list, possible_nodes, fix_properties=fix_properties, **kwargs)
+                c, symb_list = __tree_from_symb_list_recursive(symb_list, possible_nodes, fix_properties=fix_properties, enable_caching=enable_caching, **kwargs)
                 n.insert_child(c)
             return n, symb_list
 
