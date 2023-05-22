@@ -1,6 +1,5 @@
 import inspect
 from copy import deepcopy
-from typing import List, Dict
 
 import numpy as np
 import re
@@ -226,7 +225,7 @@ def counts_encode_tree(tree: Node, operators: list, n_features: int, additional_
     return counts
 
 
-def __counts_encode_tree_recursive(tree: Node, depth: int, size: int, operators: List, n_features: int, properties_dict: Dict, levels: Dict, counts: List, additional_properties: bool = True):
+def __counts_encode_tree_recursive(tree: Node, depth: int, size: int, operators: list, n_features: int, properties_dict: dict, levels: dict, counts: list, additional_properties: bool = True):
     if additional_properties:
         properties_dict["n_nodes"] += 1.0
         curr_depth, curr_arity = depth, tree.arity
@@ -408,7 +407,7 @@ def one_hot_encode_tree(tree: Node, operators: list, n_features: int, max_depth:
 
 
 def compute_linear_model_discovered_in_math_formula_interpretability_paper(tree: Node,
-                                                                           difficult_operators: List[str] = None) -> float:
+                                                                           difficult_operators: list[str] = None) -> float:
     """
     Compute the linear model discovered in math formula interpretability paper: https://arxiv.org/abs/2004.11170
 
@@ -437,7 +436,7 @@ def compute_linear_model_discovered_in_math_formula_interpretability_paper(tree:
     return 79.1 - 0.2*n_nodes - 0.5*n_operations - 3.4*n_non_arithmetic_operations - 4.5*n_consecutive_non_arithmetic_operations
 
 
-def __count_linear_model_features(tree: Node, difficult_operators: List[str], d, count=None):
+def __count_linear_model_features(tree: Node, difficult_operators: list[str], d, count=None):
     if count is None:
         count = 0
     d["n_nodes"] += 1
@@ -460,7 +459,7 @@ def __count_linear_model_features(tree: Node, difficult_operators: List[str], d,
         return count
 
 
-def concatenate_nodes_with_binary_operator(forest: List[Node], binary_operator: Node, copy_tree: bool = False) -> Node:
+def concatenate_nodes_with_binary_operator(forest: list[Node], binary_operator: Node, copy_tree: bool = False) -> Node:
     """
     This method generates a new tree starting from input forest (list of trees). The new tree is generated
     by concatenating the trees in the forest with the specified binary operator.
@@ -495,7 +494,7 @@ def concatenate_nodes_with_binary_operator(forest: List[Node], binary_operator: 
     return c
 
 
-def replace_specified_operators_with_mean_value_constants(tree: Node, X: np.ndarray, operators: List[str]) -> Node:
+def replace_specified_operators_with_mean_value_constants(tree: Node, X: np.ndarray, operators: list[str]) -> Node:
     """
     This method generates a new tree starting from the input one. In this new tree, every node whose symbol
     is specified in the operators list is replaced with a constant containing the mean value of the predictions
