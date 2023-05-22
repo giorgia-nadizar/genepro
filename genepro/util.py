@@ -138,6 +138,25 @@ def __get_subtree_as_full_list_recursive(tree: Node, subtree: list[Node]) -> Non
             __get_subtree_as_full_list_recursive(c, subtree)
 
 
+def get_subtree_as_full_string(tree: Node) -> str:
+    """
+    Given the tree, it retrieves string of the subtree in prefix order with pointers replaced with all the referenced nodes.
+    Once you have this string, you can call the method tree_from_prefix_repr on this string to obtain the original Node object.
+    Therefore, you can use this string to make your tree be persistent on disk.
+
+    Parameters
+    ----------
+    tree : Node
+      the tree
+
+    Returns
+    -------
+    str
+      the string containing the list containing all the nodes of the tree with pointers replaced with the full tree
+    """
+    return str(get_subtree_as_full_list(tree))
+
+
 def counts_encode_tree(tree: Node, operators: list, n_features: int, additional_properties: bool = True) -> list:
     """
     Provides a counts encoded representation of a tree, traversing it from the root in a breadth-first manner,
