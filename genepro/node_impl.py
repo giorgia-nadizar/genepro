@@ -1,4 +1,3 @@
-import zlib
 import numpy as np
 from genepro.node import Node
 
