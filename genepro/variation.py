@@ -8,8 +8,7 @@ from numpy.random import shuffle
 from copy import deepcopy
 
 from genepro.node import Node
-from genepro.node_impl import Constant, GSGPCrossover, GSGPMutation, Minus, Plus, Sigmoid, Pointer, Times
-from genepro.storage import Cache
+from genepro.node_impl import Constant, GSGPCrossover, GSGPMutation, Pointer
 
 
 def generate_random_tree(internal_nodes: list, leaf_nodes: list, max_depth: int, curr_depth: int = 0, ephemeral_func: Callable = None, p: list[float] = None, fixed_constants: list = None, **kwargs) -> Node:
