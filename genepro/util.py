@@ -6,7 +6,7 @@ import re
 
 from genepro.node import Node
 from genepro import node_impl
-from genepro.node_impl import Feature, Constant, GSGPCrossover, GSGPMutation, Pointer, SemanticVector, RandomGaussianConstant
+from genepro.node_impl import Feature, Constant, GSGPCrossover, GSGPMutation, Pointer, RandomGaussianConstant
 
 
 def compute_linear_scaling(y, p):
