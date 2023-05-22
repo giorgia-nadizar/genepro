@@ -19,8 +19,13 @@ For a full installation, clone this repo locally, and make use of the file [requ
 git clone https://github.com/giorgia-nadizar/genepro.git
 cd genepro
 pip3 install -r requirements.txt .
+```
+
+Installation of the updated package is as follows:
+```
 pip3 install -U .
 ```
+
 
 ### Wish to use conda?
 A conda virtual enviroment can easily be set up with:
@@ -30,8 +35,14 @@ cd genepro
 conda env create
 conda activate genepro
 pip3 install -r requirements.txt .
+```
+
+Installation of the updated package is as follows:
+```
 pip3 install -U .
 ```
+
+Be careful with conda, do not mix conda and pip together.
 
 ## Citation
 If you use this software, please cite it with:
