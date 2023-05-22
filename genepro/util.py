@@ -86,10 +86,36 @@ def __tree_from_symb_list_recursive(symb_list: list, possible_nodes: list, fix_p
     """
     symb = symb_list[0]
     symb_list = symb_list[1:]
+    # check if it is a pointer
+    if symb.startswith('pointer'):
+        raise ValueError(f'Pointer cannot be converted to a tree, before building your string in prefix representation, you must first unpack all pointers in your tree. To this, end, make use of the get_subtree_as_full_list method which is capable of automatically unpacking all pointers in the tree.')
+
     # check if it is a feature
-    if symb.startswith("x_"):
+    if symb.startswith('x_'):
         id = int(symb[2:])
         n = Feature(id, fix_properties=fix_properties, **kwargs)
+        return n, symb_list
+    
+    # check if it is a constant
+    if re.search(r'^[+-]?\d+(\.\d+)?([Ee][+-]?\d+)?$', symb):
+        n = Constant(float(symb), fix_properties=fix_properties, **kwargs)
+        return n, symb_list
+
+    # check if it is a random gaussian constant
+    if symb.startswith('rgc_'):
+        l: list[float] = [float(i) for i in symb.split('_')[1:]]
+        n = RandomGaussianConstant(mean=l[0], std=l[1], fix_properties=fix_properties, **kwargs)
+        return n, symb_list
+    
+    # check if it is a gsgp crossover
+    if symb.startswith('gsgpcx'):
+        n = GSGPCrossover(enable_caching=enable_caching, fix_properties=fix_properties, **kwargs)
+        return n, symb_list
+    
+    # check if it is a gsgp mutation
+    if symb.startswith('gsgpmut'):
+        m: float = float(symb[len('gsgpmut'):])
+        n = GSGPMutation(m=m, fix_properties=fix_properties, **kwargs)
         return n, symb_list
 
     # check if it is a function
@@ -100,10 +126,8 @@ def __tree_from_symb_list_recursive(symb_list: list, possible_nodes: list, fix_p
                 c, symb_list = __tree_from_symb_list_recursive(symb_list, possible_nodes, fix_properties=fix_properties, enable_caching=enable_caching, **kwargs)
                 n.insert_child(c)
             return n, symb_list
-
-    # if reached this line, it must be a constant
-    n = Constant(float(symb), fix_properties=fix_properties, **kwargs)
-    return n, symb_list
+    
+    raise ValueError(f'{symb} unrecognized as symbol for possible functions of genepro.')
 
 
 def get_subtree_as_full_list(tree: Node) -> list[Node]:
