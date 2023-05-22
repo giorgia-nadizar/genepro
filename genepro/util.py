@@ -32,7 +32,7 @@ def compute_linear_scaling(y, p):
     return slope, intercept
 
 
-def tree_from_prefix_repr(prefix_repr: str) -> Node:
+def tree_from_prefix_repr(prefix_repr: str, fix_properties: bool = False, **kwargs) -> Node:
     """
     Creates a tree from a string representation in prefix format (that is, pre-order tree traversal);
     the symbol in the string representation need to match those in the Node implementations (in `genepro.node_impl.py`)
@@ -41,7 +41,9 @@ def tree_from_prefix_repr(prefix_repr: str) -> Node:
     ----------
     prefix_repr : str
       the string representation of the tree as a list of nodes parsed with pre-order traversal (obtainable with `str(tree.get_subtree())`)
-
+    fix_properties : bool
+      the fix_properties attribute of the Node class
+  
     Returns
     -------
     Node
@@ -55,13 +57,13 @@ def tree_from_prefix_repr(prefix_repr: str) -> Node:
         # handle Features and Constants separetely (also, avoid base class Node)
         if node_cls == Node or node_cls == Feature or node_cls == Constant or node_cls == Pointer or node_cls == SemanticVector or node_cls == RandomGaussianConstant:
             continue
-        node_obj = node_cls()
+        node_obj = node_cls(fix_properties=fix_properties, **kwargs)
         possible_nodes.append(node_obj)
-    tree, _ = __tree_from_symb_list_recursive(symb_list, possible_nodes)
+    tree, _ = __tree_from_symb_list_recursive(symb_list, possible_nodes, fix_properties=fix_properties, **kwargs)
     return tree
 
 
-def __tree_from_symb_list_recursive(symb_list: list, possible_nodes: list):
+def __tree_from_symb_list_recursive(symb_list: list, possible_nodes: list, fix_properties: bool, **kwargs):
     """
     Helper recursive function for `tree_from_prefix_repr`
 
@@ -69,9 +71,10 @@ def __tree_from_symb_list_recursive(symb_list: list, possible_nodes: list):
     ----------
     symb_list : list
       list of str that are symbols (as per the attribute `symb` of Node)
-
     possible_nodes : list
       list of all possible Node objects from `genepro.node_impl`
+    fix_properties : bool
+      the fix_properties attribute of the Node class
 
     Returns
     -------
@@ -83,7 +86,7 @@ def __tree_from_symb_list_recursive(symb_list: list, possible_nodes: list):
     # check if it is a feature
     if symb.startswith("x_"):
         id = int(symb[2:])
-        n = Feature(id)
+        n = Feature(id, fix_properties=fix_properties, **kwargs)
         return n, symb_list
 
     # check if it is a function
@@ -91,12 +94,12 @@ def __tree_from_symb_list_recursive(symb_list: list, possible_nodes: list):
         if symb == str(pn):
             n = deepcopy(pn)
             for _ in range(n.arity):
-                c, symb_list = __tree_from_symb_list_recursive(symb_list, possible_nodes)
+                c, symb_list = __tree_from_symb_list_recursive(symb_list, possible_nodes, fix_properties=fix_properties, **kwargs)
                 n.insert_child(c)
             return n, symb_list
 
     # if reached this line, it must be a constant
-    n = Constant(float(symb))
+    n = Constant(float(symb), fix_properties=fix_properties, **kwargs)
     return n, symb_list
 
 

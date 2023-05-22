@@ -42,7 +42,8 @@ class Node:
     """
 
     def __init__(self,
-                 fix_properties: bool = False
+                 fix_properties: bool = False,
+                 **kwargs
                  ) -> None:
         super().__init__()
         self.symb = None
@@ -180,7 +181,7 @@ class Node:
         """
         return self.get_readable_repr() == other.get_readable_repr()
 
-    def semantically_equal(self, other: Node, X: np.ndarray) -> bool:
+    def semantically_equal(self, other: Node, X: np.ndarray, **kwargs) -> bool:
         """
         Check if two trees are semantically equal.
 
@@ -197,7 +198,7 @@ class Node:
         bool
           whether the two trees are semantically equal
         """
-        return self(X).tolist() == other(X).tolist()
+        return self(X, **kwargs).tolist() == other(X, **kwargs).tolist()
 
     def get_subtree(self) -> list:
         """
@@ -323,7 +324,7 @@ class Node:
         """
         raise NotImplementedError()
 
-    def create_new_empty_node(self) -> Node:
+    def create_new_empty_node(self, **kwargs) -> Node:
         """
         Returns a new empty instance of the given type of node
 
