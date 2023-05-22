@@ -4,7 +4,6 @@ import numpy as np
 from random import random as randu
 from numpy.random import normal as randn
 from random import choices as randc
-from random import randint as randi
 from numpy.random import shuffle
 from copy import deepcopy
 
@@ -238,7 +237,7 @@ def generate_random_forest(internal_nodes: list, leaf_nodes: list, max_depth: in
     if n_trees is None:
         if n_trees_min > n_trees_max:
             raise AttributeError(f"n_trees_min must not be greater than n_trees_max. Here n_trees_min is {n_trees_min} and n_trees_max is {n_trees_max}.")
-        n_trees: int = randi(low=n_trees_min, high=n_trees_max)
+        n_trees: int = int(randu()*(n_trees_max - n_trees_min + 1)) + n_trees_min
     for _ in range(n_trees):
         if randu() < tree_prob:
             current_max_depth: int = max_depth
