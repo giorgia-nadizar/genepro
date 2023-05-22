@@ -110,18 +110,24 @@ def __tree_from_symb_list_recursive(symb_list: list, possible_nodes: list, fix_p
     # check if it is a gsgp crossover
     if symb.startswith('gsgpcx'):
         n = GSGPCrossover(enable_caching=enable_caching, fix_properties=fix_properties, **kwargs)
+        for _ in range(n.arity):
+            c, symb_list = __tree_from_symb_list_recursive(symb_list, possible_nodes, fix_properties=fix_properties, enable_caching=enable_caching, **kwargs)
+            n.insert_child(c)
         return n, symb_list
     
     # check if it is a gsgp mutation
     if symb.startswith('gsgpmut'):
         m: float = float(symb[len('gsgpmut'):])
         n = GSGPMutation(m=m, fix_properties=fix_properties, **kwargs)
+        for _ in range(n.arity):
+            c, symb_list = __tree_from_symb_list_recursive(symb_list, possible_nodes, fix_properties=fix_properties, enable_caching=enable_caching, **kwargs)
+            n.insert_child(c)
         return n, symb_list
 
     # check if it is a function
     for pn in possible_nodes:
-        if symb == str(pn):
-            n = deepcopy(pn)
+        if symb == pn.symb:
+            n = pn.create_new_empty_node(**kwargs)
             for _ in range(n.arity):
                 c, symb_list = __tree_from_symb_list_recursive(symb_list, possible_nodes, fix_properties=fix_properties, enable_caching=enable_caching, **kwargs)
                 n.insert_child(c)
