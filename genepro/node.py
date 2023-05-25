@@ -74,7 +74,8 @@ class Node:
     
     def set_fix_properties(self, fix_properties: bool) -> bool:
         """
-        Set the fix properties value again
+        Set the fix properties value again.
+        If you set the fix_properties value to False, the eventual previous fixed values will be cleared to save memory space.
 
         Parameters
         ----------
@@ -88,7 +89,16 @@ class Node:
         """
         old_fix_properties: bool = self.get_fix_properties()
         self.__fix_properties = fix_properties
+        if not self.__fix_properties:
+            self.__clear_fixed_values()
         return old_fix_properties
+    
+    def __clear_fixed_values(self) -> None:
+        self.__hash_value = None
+        self.__readable_repr_value = None
+        self.__lisp_expr_value = None
+        self.__n_nodes_value = None
+        self.__height_value = None
 
     def __repr__(self) -> str:
         """
@@ -163,15 +173,21 @@ class Node:
         int
           hash code of the tree
         """
-        if not self.get_fix_properties() or self.__hash_value is None:
-          molt = 31
-          h = 0
-          h = h * molt + self._single_hash_value()
-          for c in self._children:
-              h = h * molt + hash(c)
-          self.__hash_value = h
+        if not self.get_fix_properties():
+            return self.__compute_hash_value()
+        
+        if self.__hash_value is None:
+            self.__hash_value = self.__compute_hash_value()
         
         return self.__hash_value
+    
+    def __compute_hash_value(self) -> int:
+        molt = 31
+        h = 0
+        h = h * molt + self._single_hash_value()
+        for c in self._children:
+            h = h * molt + hash(c)
+        return h
 
     def _single_hash_value(self) -> int:
         return zlib.adler32(bytes(self.symb, "utf-8"))
@@ -233,12 +249,18 @@ class Node:
         str
           Human-readable representation of the subtree
         """
-        if not self.get_fix_properties() or self.__readable_repr_value is None:
-          repr = [""]  # trick to pass string by reference
-          self.__get_readable_repr_recursive(repr)
-          self.__readable_repr_value = repr[0]
+        if not self.get_fix_properties():
+            return self.__compute_read_repr()
+        
+        if self.__readable_repr_value is None:
+            self.__readable_repr_value = self.__compute_read_repr()
         
         return self.__readable_repr_value
+
+    def __compute_read_repr(self) -> str:
+        repr = [""]  # trick to pass string by reference
+        self.__get_readable_repr_recursive(repr)
+        return repr[0]
 
     def insert_child(self, c: Node, i: int = None):
         """
@@ -371,15 +393,21 @@ class Node:
         int
           the height of this node
         """
-        if not self.get_fix_properties() or self.__height_value is None:
-          if self.arity == 0:
-              return 0
-          a = []
-          for c in self._children:
-              a.append(c.get_height())
-          self.__height_value = 1 + max(a)
+        if not self.get_fix_properties():
+            return self.__compute_height()
+        
+        if self.__height_value is None:
+            self.__height_value = self.__compute_height()
         
         return self.__height_value
+    
+    def __compute_height(self) -> int:
+        if self.arity == 0:
+            return 0
+        a = []
+        for c in self._children:
+            a.append(c.get_height())
+        return 1 + max(a)
 
     def get_n_nodes(self) -> int:
         """
@@ -390,16 +418,22 @@ class Node:
         int
           the amount of nodes in this tree
         """
-        if not self.get_fix_properties() or self.__n_nodes_value is None:
-          if self.arity == 0:
-              return 1
-          a = []
-          for c in self._children:
-              a.append(c.get_n_nodes())
-          self.__n_nodes_value = 1 + sum(a)
-
+        if not self.get_fix_properties():
+            return self.__compute_n_nodes()
+        
+        if self.__n_nodes_value is None:
+            self.__n_nodes_value = self.__compute_n_nodes()
+        
         return self.__n_nodes_value
-
+    
+    def __compute_n_nodes(self) -> int:
+        if self.arity == 0:
+            return 1
+        a = []
+        for c in self._children:
+            a.append(c.get_n_nodes())
+        return 1 + sum(a)
+    
     def _get_child_outputs(self, X: np.ndarray, **kwargs) -> list:
         """
         Returns the output of the children for the given input as a list
@@ -695,24 +729,30 @@ class Node:
         str
           string representation
         """
-        if not self.get_fix_properties() or self.__lisp_expr_value is None:
-          s = ""
-          nodes = [self]
-          while len(nodes) > 0:
-              curr_node = nodes.pop(len(nodes) - 1)
-              if isinstance(curr_node, str):
-                  s += curr_node + " "
-              else:
-                  s += curr_node._get_single_string_repr_lisp() + " "
-                  if curr_node.arity > 0:
-                      nodes.append(")")
-                      for i in range(curr_node.arity - 1, -1, -1):
-                          nodes.append(curr_node.get_child(i))
-                      nodes.append("(")
-          self.__lisp_expr_value = s.strip()
-
+        if not self.get_fix_properties():
+            return self.__compute_lisp_expr()
+        
+        if self.__lisp_expr_value is None:
+            self.__lisp_expr_value = self.__compute_lisp_expr()
+        
         return self.__lisp_expr_value
     
+    def __compute_lisp_expr(self) -> str:
+        s = ""
+        nodes = [self]
+        while len(nodes) > 0:
+            curr_node = nodes.pop(len(nodes) - 1)
+            if isinstance(curr_node, str):
+                s += curr_node + " "
+            else:
+                s += curr_node._get_single_string_repr_lisp() + " "
+                if curr_node.arity > 0:
+                    nodes.append(")")
+                    for i in range(curr_node.arity - 1, -1, -1):
+                        nodes.append(curr_node.get_child(i))
+                    nodes.append("(")
+        return s.strip()
+
     def _get_single_string_repr_tree(self) -> str:
         return self.symb
     
