@@ -564,6 +564,7 @@ class GSGPCrossover(Node):
 class GSGPMutation(Node):
     def __init__(self,
                  m: float,
+                 enable_caching: bool = False,
                  fix_properties: bool = False,
                  **kwargs
                  ) -> None:
@@ -571,14 +572,32 @@ class GSGPMutation(Node):
         self.arity = 3
         self.__m = round(m, 2)
         self.symb = f'gsgpmut{str(self.__m)}'
+        self.__pred = {}
+        self.__enable_caching = enable_caching
 
     def create_new_empty_node(self, **kwargs) -> Node:
-        return GSGPMutation(m=self.__m, fix_properties=self.get_fix_properties(), **kwargs)
+        return GSGPMutation(m=self.__m, enable_caching=self.__enable_caching, fix_properties=self.get_fix_properties(), **kwargs)
 
     def _get_args_repr(self, args):
         return "GSGPMUT("+ str(self.__m) + ", " + args[0] + ", " + args[1] + ", " + args[2] + ")"
 
+    def clean_pred(self):
+        self.__pred = {}
+
+    def is_caching_enabled(self):
+        return self.__enable_caching
+
+    def enable_caching(self):
+        self.__enable_caching = True
+
+    def disable_caching(self):
+        self.__enable_caching = False
+        self.__pred = {}
+
     def get_output(self, X, **kwargs):
+        dataset_type = kwargs.get('dataset_type', None)
+        if self.__enable_caching and dataset_type is not None and dataset_type in self.__pred:
+            return self.__pred[dataset_type]
         c_outs = self._get_child_outputs(X, **kwargs)
         t = c_outs[0]
         r1 = c_outs[1]
@@ -589,6 +608,8 @@ class GSGPMutation(Node):
         s2 = 1.0/(1.0 + np.exp(-s2))
         o = np.core.umath.clip(t, -1e+100, 1e+100)
         result = o + self.__m * (s1 - s2)
+        if self.__enable_caching and dataset_type is not None:
+            self.__pred[dataset_type] = result
         return result
 
 
