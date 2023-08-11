@@ -685,7 +685,7 @@ def safe_subtree_mutation(tree: Node, internal_nodes: list, leaf_nodes: list,
     return subtree_mutation(deepcopy(tree), internal_nodes, leaf_nodes, unif_depth=unif_depth, max_depth=max_depth, generation_strategy=generation_strategy, ephemeral_func=ephemeral_func, p=p, fixed_constants=fixed_constants, **kwargs)
 
 
-def geometric_semantic_tree_mutation(tree: Node, internal_nodes: list, leaf_nodes: list, max_depth: int = 4, generation_strategy: str = 'grow', ephemeral_func: Callable = None, p: list[float] = None, fixed_constants: list = None, m: float = 0.5, fix_properties: bool = False, **kwargs) -> Node:
+def geometric_semantic_tree_mutation(tree: Node, internal_nodes: list, leaf_nodes: list, max_depth: int = 4, generation_strategy: str = 'grow', ephemeral_func: Callable = None, p: list[float] = None, fixed_constants: list = None, m: float = 0.5, fix_properties: bool = False, enable_caching: bool = False, **kwargs) -> Node:
     """
     Performs geometric semantic tree mutation. Pointers are used to avoid generation very large trees to store in memory.
 
@@ -711,13 +711,15 @@ def geometric_semantic_tree_mutation(tree: Node, internal_nodes: list, leaf_node
       a coefficient in the geometric semantic mutation
     fix_properties : bool
       the fix_properties attribute of the Node class
-
+    enable_caching : bool
+      if True, it enables caching for GSGPMutation operator
+      
     Returns
     -------
     Node
       the tree after mutation (warning: replace the original tree with the returned one to avoid undefined behavior)
     """
-    mut_tree: Node = GSGPMutation(m=m, fix_properties=fix_properties, **kwargs)
+    mut_tree: Node = GSGPMutation(m=m, enable_caching=enable_caching, fix_properties=fix_properties, **kwargs)
     mut_tree.insert_child(Pointer(tree, fix_properties=fix_properties, **kwargs))
     mut_tree.insert_child(generate_tree_wrt_strategy(internal_nodes=internal_nodes, leaf_nodes=leaf_nodes, max_depth=max_depth, generation_strategy=generation_strategy, ephemeral_func=ephemeral_func, p=p, fixed_constants=fixed_constants, **kwargs))
     mut_tree.insert_child(generate_tree_wrt_strategy(internal_nodes=internal_nodes, leaf_nodes=leaf_nodes, max_depth=max_depth, generation_strategy=generation_strategy, ephemeral_func=ephemeral_func, p=p, fixed_constants=fixed_constants, **kwargs))
