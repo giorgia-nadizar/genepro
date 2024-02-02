@@ -328,8 +328,6 @@ def safe_subtree_crossover_two_children(tree1: Node, tree2: Node, unif_depth: in
 
     tree1 = deepcopy(tree1)
     tree2 = deepcopy(tree2)
-    if tree1_get_height < tree2_get_height:
-        tree1, tree2 = tree2, tree1
 
     # pick a subtree to replace
     child1 = __sample_node(tree1, unif_depth)
@@ -600,8 +598,7 @@ def safe_subforest_one_point_crossover_two_children(forest: list[Node], donor: l
         raise AttributeError(f"Max length must be greater than 1. Specified {max_length} instead.")
     forest_1: list[Node] = [deepcopy(x) for x in forest]
     forest_2: list[Node] = [deepcopy(x) for x in donor]
-    if len(forest_2) < len(forest_1):
-        forest_2, forest_1 = forest_1, forest_2
+    
     cut_index: int = int(randu()*len(forest_1))
     child_1: list[Node] = forest_1[:cut_index] + forest_2[cut_index:]
     child_2: list[Node] = forest_2[:cut_index] + forest_1[cut_index:]
