@@ -697,10 +697,10 @@ def one_point_mutation(tree : Node, internal_nodes : list, leaf_nodes : list) ->
       is_leaf = arity == 0
       # pick a new node with the same arity
       if is_leaf:
-        new_node = deepcopy(randc(leaf_nodes))
+        new_node = deepcopy(randc(leaf_nodes)[0])
       else:
         possible_nodes = [m for m in internal_nodes if m.arity == arity]
-        new_node = deepcopy(randc(possible_nodes))
+        new_node = deepcopy(randc(possible_nodes)[0])
 
       # attach children
       for c in n._children:
@@ -721,7 +721,7 @@ def one_point_mutation(tree : Node, internal_nodes : list, leaf_nodes : list) ->
   # pick a subtree to replace
   n = __sample_node(tree, unif_depth)
   # generate a random branch
-  branch = generate_random_tree(internal_nodes, leaf_nodes, max_depth, prob_leaf)
+  branch = generate_random_tree(internal_nodes=internal_nodes, leaf_nodes=leaf_nodes, max_depth=max_depth)
   # swap
   p = n.parent
   if p:
