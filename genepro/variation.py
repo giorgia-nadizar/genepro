@@ -8,7 +8,7 @@ from numpy.random import shuffle
 from copy import deepcopy
 
 from genepro.node import Node
-from genepro.node_impl import Constant, GSGPCrossover, GSGPMutation, Pointer
+from genepro.node_impl import Constant, InstantiableConstant, GSGPCrossover, GSGPMutation, Pointer
 
 
 def generate_random_tree(internal_nodes: list, leaf_nodes: list, max_depth: int, curr_depth: int = 0, ephemeral_func: Callable = None, p: list[float] = None, fixed_constants: list = None, p_leaves: list[float] = None, **kwargs) -> Node:
@@ -874,7 +874,7 @@ def coeff_mutation(tree: Node, prob_coeff_mut: float = 0.25, temp: float = 0.25)
     Node
       the tree after coefficient mutation (it is the same as the tree in input)
     """
-    coeffs = [n for n in tree.get_subtree() if type(n) == Constant]
+    coeffs = [n for n in tree.get_subtree() if type(n) == Constant or type(n) == InstantiableConstant]
     for c in coeffs:
         # decide whether it should be applied
         if randu() < prob_coeff_mut:

@@ -6,7 +6,7 @@ import re
 
 from genepro.node import Node
 from genepro import node_impl
-from genepro.node_impl import Feature, Constant, GSGPCrossover, GSGPMutation, Pointer, RandomGaussianConstant
+from genepro.node_impl import Feature, Constant, InstantiableConstant, OOHRdyFeature, GSGPCrossover, GSGPMutation, Pointer, RandomGaussianConstant, Times
 
 
 def compute_linear_scaling(y, p):
@@ -31,7 +31,7 @@ def compute_linear_scaling(y, p):
     return slope, intercept
 
 
-def tree_from_prefix_repr(prefix_repr: str, fix_properties: bool = False, enable_caching: bool = False, **kwargs) -> Node:
+def tree_from_prefix_repr(prefix_repr: str, fix_properties: bool = False, enable_caching: bool = False, slack: float = 1.0, **kwargs) -> Node:
     """
     Creates a tree from a string representation in prefix format (that is, pre-order tree traversal);
     the symbol in the string representation need to match those in the Node implementations (in `genepro.node_impl.py`)
@@ -56,15 +56,15 @@ def tree_from_prefix_repr(prefix_repr: str, fix_properties: bool = False, enable
     possible_nodes = list()
     for node_cls in node_classes:
         # handle Features and Constants separetely (also, avoid base class Node)
-        if node_cls == Node or node_cls == Feature or node_cls == Constant or node_cls == Pointer or node_cls == RandomGaussianConstant or node_cls == GSGPCrossover or node_cls == GSGPMutation:
+        if node_cls == Node or node_cls == Feature or node_cls == Constant or node_cls == InstantiableConstant or node_cls == OOHRdyFeature or node_cls == Pointer or node_cls == RandomGaussianConstant or node_cls == GSGPCrossover or node_cls == GSGPMutation:
             continue
         node_obj = node_cls(fix_properties=fix_properties, **kwargs)
         possible_nodes.append(node_obj)
-    tree, _ = __tree_from_symb_list_recursive(symb_list, possible_nodes, fix_properties=fix_properties, enable_caching=enable_caching, **kwargs)
+    tree, _ = __tree_from_symb_list_recursive(symb_list, possible_nodes, fix_properties=fix_properties, enable_caching=enable_caching, slack=slack, **kwargs)
     return tree
 
 
-def __tree_from_symb_list_recursive(symb_list: list, possible_nodes: list, fix_properties: bool, enable_caching: bool, **kwargs):
+def __tree_from_symb_list_recursive(symb_list: list, possible_nodes: list, fix_properties: bool, enable_caching: bool, slack: float, **kwargs):
     """
     Helper recursive function for `tree_from_prefix_repr`
 
@@ -128,6 +128,8 @@ def __tree_from_symb_list_recursive(symb_list: list, possible_nodes: list, fix_p
     for pn in possible_nodes:
         if symb == pn.symb:
             n = pn.create_new_empty_node(**kwargs)
+            if 'slack' in symb:
+                n.slack = slack
             for _ in range(n.arity):
                 c, symb_list = __tree_from_symb_list_recursive(symb_list, possible_nodes, fix_properties=fix_properties, enable_caching=enable_caching, **kwargs)
                 n.insert_child(c)
@@ -168,6 +170,16 @@ def __get_subtree_as_full_list_recursive(tree: Node, subtree: list[Node]) -> Non
     """
     if isinstance(tree, Pointer):
         __get_subtree_as_full_list_recursive(tree.get_value(), subtree)
+    elif isinstance(tree, OOHRdyFeature):
+        value = float(tree.get_value())
+        id = tree.id
+        if value == 1.0:
+            __get_subtree_as_full_list_recursive(Feature(id), subtree)
+        else:
+            mul_op = Times()
+            mul_op.insert_child(Constant(value))
+            mul_op.insert_child(Feature(id))
+            __get_subtree_as_full_list_recursive(mul_op, subtree)
     else:
         subtree.append(tree)
         for c in tree._children:
