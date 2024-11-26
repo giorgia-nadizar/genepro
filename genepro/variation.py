@@ -8,7 +8,7 @@ from numpy.random import shuffle
 from copy import deepcopy
 
 from genepro.node import Node
-from genepro.node_impl import Constant, InstantiableConstant, GSGPCrossover, GSGPMutation, Pointer
+from genepro.node_impl import Constant, InstantiableConstant, GSGPCrossover, GSGPMutation, Pointer, OOHRdyFeature
 
 
 def generate_random_tree(internal_nodes: list, leaf_nodes: list, max_depth: int, curr_depth: int = 0, ephemeral_func: Callable = None, p: list[float] = None, fixed_constants: list = None, p_leaves: list[float] = None, **kwargs) -> Node:
@@ -298,6 +298,32 @@ def subtree_crossover(tree: Node, donor: Node, unif_depth: int = True) -> Node:
     return tree
 
 
+def safe_subtree_crossover(tree1: Node, tree2: Node, unif_depth: int = True, max_depth: int = 4) -> Node:
+    """
+    Performs subtree crossover and returns the resulting offsprings without changing the original trees
+
+    Parameters
+    ----------
+    tree1 : Node
+      the first tree participating in the crossover
+    tree2 : Node
+      the second tree participating in the crossover
+    unif_depth : bool, optional
+      whether uniform random depth sampling is used to pick the root of the subtrees to swap (default is True)
+    max_depth : int, optional
+      max depth of the offsprings (default is 4)
+    Returns
+    -------
+    Node
+      the trees after crossover
+    """
+    first, second = safe_subtree_crossover_two_children(tree1=tree1, tree2=tree2, unif_depth=unif_depth, max_depth=max_depth)
+    if randu() < 0.5:
+        return first
+    else:
+        return second
+
+
 def safe_subtree_crossover_two_children(tree1: Node, tree2: Node, unif_depth: int = True, max_depth: int = 4) -> tuple[Node, Node]:
     """
     Performs subtree crossover and returns the resulting offsprings without changing the original trees
@@ -471,13 +497,13 @@ def node_level_crossover(tree: Node, donor: Node, same_depth: bool = False, prob
             m.parent = None
             m.child_id = -1
             m._children = list()
+            for c in n._children:
+                m.insert_child(c)
             p = n.parent
             if p:
                 p.replace_child(m, n.child_id)
             else:
-                tree = m
-            for c in n._children:
-                m.insert_child(c)
+                tree = m            
 
     return tree
 
@@ -559,20 +585,20 @@ def safe_node_level_crossover_two_children(tree1: Node, tree2: Node, same_depth:
             new_child1.child_id = -1
             new_child2.parent = None
             new_child2.child_id = -1
-
+            
+            for c in children1:
+                new_child2.insert_child(c)
             if parent1:
                 parent1.replace_child(new_child2, child1.child_id)
             else:
                 tree1 = new_child2
-            for c in children1:
-                new_child2.insert_child(c)
 
+            for c in children2:
+                new_child1.insert_child(c)
             if parent2:
                 parent2.replace_child(new_child1, child2.child_id)
             else:
                 tree2 = new_child1
-            for c in children2:
-                new_child1.insert_child(c)
 
     return tree1, tree2
 
@@ -874,11 +900,13 @@ def coeff_mutation(tree: Node, prob_coeff_mut: float = 0.25, temp: float = 0.25)
     Node
       the tree after coefficient mutation (it is the same as the tree in input)
     """
-    coeffs = [n for n in tree.get_subtree() if type(n) == Constant or type(n) == InstantiableConstant]
+    coeffs = [n for n in tree.get_subtree() if type(n) == Constant or type(n) == InstantiableConstant or type(n) == OOHRdyFeature]
     for c in coeffs:
         # decide whether it should be applied
         if randu() < prob_coeff_mut:
             v = c.get_value()
+            if v == 1.0 and isinstance(c, OOHRdyFeature):
+                continue
             # update the value by +- temp relative to current value
             new_v = v + temp * np.abs(v) * randn()
             c.set_value(new_v)
