@@ -919,7 +919,7 @@ class OOHRdyFeature(Node):
             unique_column = np.unique(X[:, self.id]).astype(float).tolist()
             unique_column.sort()
             if unique_column == [0.0] or unique_column == [1.0] or unique_column == [0.0, 1.0]:
-                self.__const_value = np.random.normal()
+                self.__const_value = np.round(np.random.random() * 10 - 5, 3)
             else:
                 self.__const_value = 1.0
         
