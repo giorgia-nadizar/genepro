@@ -488,7 +488,7 @@ class Node:
         if name == 'between':
             if len(args) != 2:
                 raise ValueError("Invalid representation 'between' for len(args)!=2")
-            return '(' + args[0] + self.symb + args[1] + ')'
+            return '(' + '(' +  args[0] + ')' + self.symb + '(' + args[1] + ')' + ')'
         elif name == 'before':
             repr = self.symb + '('
             for arg in args:

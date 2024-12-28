@@ -754,7 +754,7 @@ class Sigmoid(Node):
         return Sigmoid(fix_properties=self.get_fix_properties(), **kwargs)
 
     def _get_args_repr(self, args):
-        return "1 / (1 + exp(-{}))".format(args[0])
+        return "(1 / (1 + exp(-({}))))".format(args[0])
 
     def get_output(self, X, **kwargs):
         c_outs = self._get_child_outputs(X, **kwargs)
@@ -910,8 +910,8 @@ class OOHRdyFeature(Node):
         else:
             const_value = self.__const_value
         if float(const_value) == 1.0:
-            return "{}".format(self.symb)
-        return "{} * {}".format(const_value, self.symb)
+            return "({})".format(self.symb)
+        return "(({}) * ({}))".format(const_value, self.symb)
 
     def get_output(self, X, **kwargs):
         if not self.__const_value:
@@ -936,7 +936,7 @@ class UnprotectedDiv(Node):
         return UnprotectedDiv(fix_properties=self.get_fix_properties(), **kwargs)
 
     def _get_args_repr(self, args):
-        return "({} / {})".format(*args)
+        return "(({}) / ({}))".format(*args)
 
     def get_output(self, X, **kwargs):
         c_outs = self._get_child_outputs(X)
@@ -955,7 +955,7 @@ class ExpPlus(Node):
         return ExpPlus(fix_properties=self.get_fix_properties(), **kwargs)
 
     def _get_args_repr(self, args):
-        return "exp({} + {})".format(*args)
+        return "exp(({}) + ({}))".format(*args)
 
     def get_output(self, X, **kwargs):
         c_outs = self._get_child_outputs(X)
@@ -972,7 +972,7 @@ class ExpTimes(Node):
         return ExpTimes(fix_properties=self.get_fix_properties(), **kwargs)
 
     def _get_args_repr(self, args):
-        return "exp({} * {})".format(*args)
+        return "exp(({}) * ({}))".format(*args)
 
     def get_output(self, X, **kwargs):
         c_outs = self._get_child_outputs(X)
@@ -1044,7 +1044,7 @@ class LogSlack(Node):
         return LogSlack(slack=self.slack, fix_properties=self.get_fix_properties(), **kwargs)
 
     def _get_args_repr(self, args):
-        return "log({} + {})".format(args[0], self.slack)
+        return "log(({}) + ({}))".format(args[0], self.slack)
 
     def get_output(self, X, **kwargs):
         c_outs = self._get_child_outputs(X)
@@ -1066,7 +1066,7 @@ class SqrtSlack(Node):
         return SqrtSlack(slack=self.slack, fix_properties=self.get_fix_properties(), **kwargs)
 
     def _get_args_repr(self, args):
-        return "sqrt({} + {})".format(args[0], self.slack)
+        return "sqrt(({}) + ({}))".format(args[0], self.slack)
 
     def get_output(self, X, **kwargs):
         c_outs = self._get_child_outputs(X)
@@ -1088,7 +1088,7 @@ class DivSlack(Node):
         return DivSlack(slack=self.slack, fix_properties=self.get_fix_properties(), **kwargs)
 
     def _get_args_repr(self, args):
-        return "({} / ({} + {}))".format(args[0], args[1], self.slack)
+        return "(({}) / (({}) + ({})))".format(args[0], args[1], self.slack)
     
     def get_output(self, X, **kwargs):
         c_outs = self._get_child_outputs(X)
@@ -1110,7 +1110,7 @@ class AnalyticQuotient(Node):
         return AnalyticQuotient(slack=self.slack, fix_properties=self.get_fix_properties(), **kwargs)
 
     def _get_args_repr(self, args):
-        return "({} / sqrt({}^2 + {}))".format(args[0], args[1], self.slack)
+        return "(({}) / sqrt(({})**2 + ({})))".format(args[0], args[1], self.slack)
     
     def get_output(self, X, **kwargs):
         c_outs = self._get_child_outputs(X)
@@ -1130,7 +1130,7 @@ class LogSquare(Node):
         return LogSquare(slack=self.slack, fix_properties=self.get_fix_properties(), **kwargs)
 
     def _get_args_repr(self, args):
-        return "log({}^2 + {})".format(args[0], self.slack)
+        return "log(({})**2 + ({}))".format(args[0], self.slack)
     
     def get_output(self, X, **kwargs):
         c_outs = self._get_child_outputs(X)
