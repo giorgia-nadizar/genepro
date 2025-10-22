@@ -321,6 +321,26 @@ class And(Node):
     def get_output(self, X, **kwargs):
         c_outs = self._get_child_outputs(X, **kwargs)
         return np.where(np.logical_or(c_outs[0] == 0, c_outs[1] == 0), 0, 1)
+        
+class AndTwo(Node):
+    def __init__(self,
+                 fix_properties: bool = False,
+                 **kwargs
+                 ) -> None:
+        super().__init__(fix_properties=fix_properties, **kwargs)
+        self.arity = 2
+        self.symb = "andtwo"
+
+    def create_new_empty_node(self, **kwargs) -> Node:
+        return AndTwo(fix_properties=self.get_fix_properties(), **kwargs)
+
+    def _get_args_repr(self, args):
+        return self._get_typical_repr(args, "between")
+
+    def get_output(self, X, **kwargs):
+        c_outs = self._get_child_outputs(X, **kwargs)
+        second_input_inverted = np.where(c_outs[1] == 0, 1, 0)
+        return np.where(np.logical_or(c_outs[0] == 0, second_input_inverted == 0), 0, 1)
 
 
 class Or(Node):
@@ -365,6 +385,31 @@ class Xor(Node):
                 np.logical_and(c_outs[0] == 0, c_outs[1] != 0),
                 np.logical_and(c_outs[0] != 0, c_outs[1] == 0)
             ), 1, 0)
+            
+
+class Xnor(Node):
+    def __init__(self,
+                 fix_properties: bool = False,
+                 **kwargs
+                 ) -> None:
+        super().__init__(fix_properties=fix_properties, **kwargs)
+        self.arity = 2
+        self.symb = "xnor"
+
+    def create_new_empty_node(self, **kwargs) -> Node:
+        return Xnor(fix_properties=self.get_fix_properties(), **kwargs)
+
+    def _get_args_repr(self, args):
+        return self._get_typical_repr(args, "between")
+
+    def get_output(self, X, **kwargs):
+        c_outs = self._get_child_outputs(X, **kwargs)
+        xor_result = np.where(
+            np.logical_or(
+                np.logical_and(c_outs[0] == 0, c_outs[1] != 0),
+                np.logical_and(c_outs[0] != 0, c_outs[1] == 0)
+            ), 1, 0)
+        return np.where(xor_result == 0, 1, 0)
 
 
 class IfThenElse(Node):
@@ -380,11 +425,11 @@ class IfThenElse(Node):
         return IfThenElse(fix_properties=self.get_fix_properties(), **kwargs)
 
     def _get_args_repr(self, args):
-        return "if(" + args[0] + " >= 0)then(" + args[1] + ")else(" + args[2] + ")"
+        return "if(" + args[0] + " > 0)then(" + args[1] + ")else(" + args[2] + ")"
 
     def get_output(self, X, **kwargs):
         c_outs = self._get_child_outputs(X, **kwargs)
-        return np.where(c_outs[0] >= 0, c_outs[1], c_outs[2])
+        return np.where(c_outs[0] > 0, c_outs[1], c_outs[2])
 
 
 class Feature(Node):
